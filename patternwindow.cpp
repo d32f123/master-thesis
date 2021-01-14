@@ -12,17 +12,19 @@ PatternWindow::PatternWindow(PatternModel *model, QWidget *parent) :
     model(model)
 {
     ui->setupUi(this);
+
     if (!model) {
         this->model = model = new PatternModel();
     } else {
         setRecorded(true);
         setEditMode(true);
     }
+
     ui->ioPlotter->initialize(QAudioDeviceInfo::defaultInputDevice());
     ui->patternNameField->setText(model->name());
+
     ui->ioPlotter->setAudio(model->bytes());
-    recorder->buf->open(QIODevice::ReadWrite);
-    recorder->buf->write(model->bytes());
+    recorder->set(model->bytes());
 }
 
 PatternWindow::~PatternWindow()

@@ -16,6 +16,7 @@ public:
 
     void start();
     void stop();
+    void set(const QByteArray& arr);
     void resetRead();
 
     static QAudioFormat defaultFormat();

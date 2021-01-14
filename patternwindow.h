@@ -16,7 +16,7 @@ class PatternWindow : public QDialog
     Q_OBJECT
 
 public:
-    explicit PatternWindow(PatternModel* model, QWidget *parent = nullptr);
+    explicit PatternWindow(PatternModel* model = nullptr, QWidget *parent = nullptr);
     ~PatternWindow();
 
     bool recording() const;

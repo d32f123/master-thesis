@@ -22,6 +22,13 @@ void IODeviceRecorder::stop()
     buf->seek(0);
 }
 
+void IODeviceRecorder::set(const QByteArray &arr)
+{
+    buf->open(QIODevice::ReadWrite);
+    buf->write(arr);
+    buf->seek(0);
+}
+
 void IODeviceRecorder::resetRead()
 {
     buf->seek(0);
