@@ -70,7 +70,7 @@ signals:
     void cancelButtonEnabledChanged(bool);
 
 private:
-    constexpr static int MIN_RECORDINGS_COUNT = 5;
+    constexpr static int MIN_RECORDINGS_COUNT = 3;
 
     Ui::PatternWindow *ui;
     IODeviceRecorder *recorder;
