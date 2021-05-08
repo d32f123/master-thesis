@@ -1,0 +1,6 @@
+*.app
+*~
+build-*
+Makefile
+*.pro.user
+.qmake.*
