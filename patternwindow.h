@@ -2,6 +2,7 @@
 #define PATTERNWINDOW_H
 
 #include <QDialog>
+#include <QListWidgetItem>
 #include <QtMultimedia/QAudioOutput>
 
 #include "patternmodel.h"
@@ -20,64 +21,73 @@ public:
     ~PatternWindow();
 
     bool recording() const;
-
-    bool recorded() const;
-
+    bool recordingSelected() const;
     bool playback() const;
-
     bool editMode() const;
+    bool nameValid() const;
+    bool enoughRecordings() const;
 
     PatternModel *patternModel() const;
 
     void setRecording(bool v);
-
-    void setRecorded(bool v);
-
+    void setRecordingSelected(bool v);
     void setPlayback(bool v);
-
     void setEditMode(bool v);
+    void setNameValid(bool v);
+    void setEnoughRecordings(bool v);
+    void setSelectedRecording(QByteArray* v);
 
 private slots:
-
     void on_createButton_clicked();
-
     void on_cancelButton_clicked();
-
     void on_patternNameField_textChanged(const QString &arg1);
-
     void on_toggleRecordingButton_clicked();
-
     void on_playRecordingButton_clicked();
+    void on_PatternWindow_editModeChanged();
+    void on_PatternWindow_recordingChanged();
+    void on_recordingsListWidget_itemSelectionChanged();
 
-    void on_PatternWindow_editModeChanged(bool);
+    void checkPlayButton();
+    void checkDeleteButton();
+    void checkToggleButton();
+    void checkCreateButton();
+    void checkCancelButton();
 
-    void on_PatternWindow_recordingChanged(bool);
-
-    void on_PatternWindow_recordedChanged(bool);
+    void on_deleteRecordingButton_clicked();
 
 signals:
+    void recordingChanged();
+    void recordingSelectedChanged();
+    void playbackChanged();
+    void editModeChanged();
+    void nameValidChanged();
+    void enoughRecordingsChanged();
 
-    void recordingChanged(bool v);
-
-    void recordedChanged(bool v);
-
-    void playbackChanged(bool v);
-
-    void editModeChanged(bool v);
+    void playButtonEnabledChanged(bool);
+    void deleteButtonEnabledChanged(bool);
+    void toggleButtonEnabledChanged(bool);
+    void createButtonEnabledChanged(bool);
+    void cancelButtonEnabledChanged(bool);
 
 private:
+    constexpr static int MIN_RECORDINGS_COUNT = 5;
+
     Ui::PatternWindow *ui;
     IODeviceRecorder *recorder;
     QAudioOutput *audioOutput;
     PatternModel *model;
 
-    void checkValidity();
+    QListWidgetItem* add_recording(const QByteArray& recording);
+
+    QList<QByteArray> _recordings;
+    QByteArray* _selectedRecording = nullptr;
 
     bool isRecording = false;
-    bool isRecorded = false;
+    bool isRecordingSelected = false;
     bool isPlayback = false;
     bool isEditMode = false;
-
+    bool isNameValid = false;
+    bool isEnoughRecordings = false;
 };
 
 #endif // PATTERNWINDOW_H

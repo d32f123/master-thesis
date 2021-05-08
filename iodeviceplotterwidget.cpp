@@ -12,7 +12,7 @@ IODevicePlotterWidget::IODevicePlotterWidget(QWidget *parent)
     mainLayout = new QVBoxLayout(this);
     chartView = new QChartView(chart);
 
-    chartView->setMinimumSize(800, 600);
+    chartView->setMinimumSize(400, 250);
     chart->addSeries(series);
 
     QValueAxis *xs = new QValueAxis;
@@ -47,6 +47,7 @@ void IODevicePlotterWidget::initialize(const QAudioDeviceInfo &deviceInfo) {
 }
 
 void IODevicePlotterWidget::setAudio(const QByteArray &arr) {
+    plotter->clear();
     plotter->write(arr);
 }
 

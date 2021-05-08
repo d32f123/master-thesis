@@ -1,5 +1,6 @@
 #include "patternservice.h"
 
+#include <qglobal.h>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonDocument>
@@ -31,12 +32,17 @@ void PatternService::savePatterns(const QVector<PatternModel> &patterns) {
 
     QJsonArray array;
 
-    for (int i = 0; i < patterns.size(); ++i) {
+    for (const auto &pattern : patterns) {
         QJsonObject obj;
-        const PatternModel &pattern = patterns[i];
         obj["name"] = pattern.name();
         obj["active"] = pattern.active();
-        obj["bytes"] = QString::fromUtf8(pattern.bytes().toBase64());
+
+        QJsonArray recordings{};
+        for (const auto &recording : pattern.recordings()) {
+            recordings.push_back(QString::fromUtf8(recording.toBase64()));
+        }
+        obj["recordings"] = recordings;
+
         array.push_back(obj);
     }
 
@@ -60,12 +66,16 @@ QVector<PatternModel> PatternService::getPatterns() {
     QJsonArray array{patternsDocument.array()};
 
     QVector<PatternModel> ret{};
-    for (int i = 0; i < array.size(); ++i) {
-        QJsonObject modelObj = array[i].toObject();
+    for (auto &&pattern : array) {
+        QJsonObject modelObj = pattern.toObject();
+        QList<QByteArray> recordings{};
+        for (auto &&recording : modelObj["recordings"].toArray()) {
+            recordings.push_back(QByteArray::fromBase64(recording.toString().toUtf8()));
+        }
         PatternModel model{
                 modelObj["name"].toString(),
                 modelObj["active"].toBool(),
-                QByteArray::fromBase64(modelObj["bytes"].toString().toUtf8())
+                std::move(recordings)
         };
         ret.push_back(model);
     }

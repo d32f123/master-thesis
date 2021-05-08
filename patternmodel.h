@@ -4,13 +4,14 @@
 #include <QObject>
 #include <QString>
 #include <QVector>
+#include <QList>
 
 class PatternModel {
 Q_GADGET;
 public:
     PatternModel();
 
-    PatternModel(const QString &name, bool active, QByteArray &&bytes);
+    PatternModel(const QString &name, bool active, QList<QByteArray> &&bytes);
 
     QString name() const;
 
@@ -20,14 +21,15 @@ public:
 
     void setActive(bool active);
 
-    QByteArray bytes() const;
+    QList<QByteArray>& recordings();
+    const QList<QByteArray>& recordings() const;
 
-    void setBytes(QByteArray &&bytes);
+    void setRecordings(QList<QByteArray> &&bytes);
 
 private:
     QString _name;
     bool _active;
-    QByteArray _bytes;
+    QList<QByteArray> _recordings;
 };
 
 #endif // PATTERNMODEL_H

@@ -4,3 +4,6 @@ build-*
 Makefile
 *.pro.user
 .qmake.*
+*.user
+cmake-build-debug/
+.idea/

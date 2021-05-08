@@ -18,7 +18,7 @@ public:
 
     void stop();
 
-    void set(const QByteArray &arr);
+    void set(const QByteArray &arr, QIODevice::OpenMode mode = QIODevice::ReadWrite);
 
     void resetRead();
 
