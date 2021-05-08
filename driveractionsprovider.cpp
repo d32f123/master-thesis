@@ -11,12 +11,11 @@ const QString DriverActionsProvider::ACTIONS_FILENAME =
 #endif
 ;
 
-DriverActionsProvider::DriverActionsProvider(QObject *parent) : QObject(parent)
-{
+DriverActionsProvider::DriverActionsProvider(QObject *parent) : QObject(parent) {
     shouldExit = new bool();
     *shouldExit = false;
 
-    bool* exit = shouldExit;
+    bool *exit = shouldExit;
     poller = QtConcurrent::run([exit, this]() -> void {
         QFile actionsFile{DriverActionsProvider::ACTIONS_FILENAME};
         if (!actionsFile.open(QIODevice::ReadWrite)) {
@@ -44,7 +43,6 @@ DriverActionsProvider::DriverActionsProvider(QObject *parent) : QObject(parent)
     });
 }
 
-DriverActionsProvider::~DriverActionsProvider()
-{
+DriverActionsProvider::~DriverActionsProvider() {
     *this->shouldExit = true;
 }

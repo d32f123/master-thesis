@@ -7,23 +7,27 @@
 
 #include <QtMultimedia/QAudioInput>
 
-class IODeviceRecorder : public QObject
-{
-    Q_OBJECT
+class IODeviceRecorder : public QObject {
+Q_OBJECT
 public:
-    IODeviceRecorder(const QAudioDeviceInfo& deviceInfo);
-    QBuffer* buf;
+    IODeviceRecorder(const QAudioDeviceInfo &deviceInfo);
+
+    QBuffer *buf;
 
     void start();
+
     void stop();
-    void set(const QByteArray& arr);
+
+    void set(const QByteArray &arr);
+
     void resetRead();
 
     static QAudioFormat defaultFormat();
+
     static const int sampleRate = 44100;
 
 private:
-    QAudioInput* audioInput;
+    QAudioInput *audioInput;
 };
 
 #endif // IODEVICERECORDER_H

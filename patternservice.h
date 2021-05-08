@@ -7,12 +7,14 @@
 #include "patternmodel.h"
 
 
-class PatternService
-{
+class PatternService {
 public:
     PatternService();
-    void addPattern(const PatternModel& pattern);
-    void savePatterns(const QVector<PatternModel>& patterns);
+
+    void addPattern(const PatternModel &pattern);
+
+    void savePatterns(const QVector<PatternModel> &patterns);
+
     QVector<PatternModel> getPatterns();
 
 protected:

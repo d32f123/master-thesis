@@ -12,16 +12,19 @@
 
 #include "iodeviceplotter.h"
 
-class IODevicePlotterWidget : public QWidget
-{
-    Q_OBJECT
+class IODevicePlotterWidget : public QWidget {
+Q_OBJECT
 public:
     explicit IODevicePlotterWidget(QWidget *parent = nullptr);
+
     ~IODevicePlotterWidget();
 
-    void initialize(const QAudioDeviceInfo& deviceInfo);
-    void setAudio(const QByteArray& arr);
+    void initialize(const QAudioDeviceInfo &deviceInfo);
+
+    void setAudio(const QByteArray &arr);
+
     void start() const;
+
     void stop() const;
 
     static const int sampleRate = 48000;
@@ -29,14 +32,14 @@ public:
 signals:
 
 private:
-    IODevicePlotter* plotter;
+    IODevicePlotter *plotter;
 
-    QVBoxLayout* mainLayout;
-    QtCharts::QChartView* chartView;
-    QtCharts::QChart* chart;
-    QtCharts::QLineSeries* series;
+    QVBoxLayout *mainLayout;
+    QtCharts::QChartView *chartView;
+    QtCharts::QChart *chart;
+    QtCharts::QLineSeries *series;
 
-    QAudioInput* audioInput;
+    QAudioInput *audioInput;
 };
 
 #endif // IODEVICEPLOTTERWIDGET_H

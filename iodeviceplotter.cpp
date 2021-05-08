@@ -2,25 +2,21 @@
 
 using namespace QtCharts;
 
-IODevicePlotter::IODevicePlotter(QXYSeries* series, QObject* parent)
-    : QIODevice(parent), series(series), buf()
-{}
+IODevicePlotter::IODevicePlotter(QXYSeries *series, QObject *parent)
+        : QIODevice(parent), series(series), buf() {}
 
-void IODevicePlotter::clear()
-{
+void IODevicePlotter::clear() {
     series->clear();
     for (int s = 0; s < buf.size(); ++s) {
         buf[s].setY(qreal(0));
     }
 }
 
-qint64 IODevicePlotter::readData(char*, qint64)
-{
+qint64 IODevicePlotter::readData(char *, qint64) {
     return -1;
 }
 
-qint64 IODevicePlotter::writeData(const char *data, qint64 maxSize)
-{
+qint64 IODevicePlotter::writeData(const char *data, qint64 maxSize) {
     if (buf.isEmpty()) {
         buf.reserve(IODevicePlotter::sampleCount);
         for (int i = 0; i < IODevicePlotter::sampleCount; ++i) {

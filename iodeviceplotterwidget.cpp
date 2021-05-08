@@ -7,21 +7,20 @@
 using namespace QtCharts;
 
 IODevicePlotterWidget::IODevicePlotterWidget(QWidget *parent)
-    : QWidget(parent),
-      chart(new QChart), series(new QLineSeries), audioInput(nullptr)
-{
+        : QWidget(parent),
+          chart(new QChart), series(new QLineSeries), audioInput(nullptr) {
     mainLayout = new QVBoxLayout(this);
     chartView = new QChartView(chart);
 
     chartView->setMinimumSize(800, 600);
     chart->addSeries(series);
 
-    QValueAxis* xs = new QValueAxis;
+    QValueAxis *xs = new QValueAxis;
     xs->setRange(0, IODevicePlotter::sampleCount);
     xs->setLabelFormat("%g");
     xs->setTitleText("Time");
 
-    QValueAxis* ys = new QValueAxis;
+    QValueAxis *ys = new QValueAxis;
     ys->setRange(-1, 1);
     ys->setTitleText("Audio level");
 
@@ -39,8 +38,7 @@ IODevicePlotterWidget::IODevicePlotterWidget(QWidget *parent)
     plotter->open(QIODevice::WriteOnly);
 }
 
-void IODevicePlotterWidget::initialize(const QAudioDeviceInfo &deviceInfo)
-{
+void IODevicePlotterWidget::initialize(const QAudioDeviceInfo &deviceInfo) {
     chart->setTitle("Input from " + deviceInfo.deviceName());
     if (audioInput != nullptr) {
         delete audioInput;
@@ -48,28 +46,24 @@ void IODevicePlotterWidget::initialize(const QAudioDeviceInfo &deviceInfo)
     audioInput = new QAudioInput(deviceInfo, IODeviceRecorder::defaultFormat(), this);
 }
 
-void IODevicePlotterWidget::setAudio(const QByteArray &arr)
-{
+void IODevicePlotterWidget::setAudio(const QByteArray &arr) {
     plotter->write(arr);
 }
 
-void IODevicePlotterWidget::start() const
-{
+void IODevicePlotterWidget::start() const {
     plotter->clear();
     if (audioInput != nullptr) {
         audioInput->start(plotter);
     }
 }
 
-void IODevicePlotterWidget::stop() const
-{
+void IODevicePlotterWidget::stop() const {
     if (audioInput != nullptr) {
         audioInput->stop();
     }
 }
 
-IODevicePlotterWidget::~IODevicePlotterWidget()
-{
+IODevicePlotterWidget::~IODevicePlotterWidget() {
     if (audioInput != nullptr) {
         audioInput->stop();
     }

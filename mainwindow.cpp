@@ -6,9 +6,7 @@
 #include "ui_patternwindow.h"
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
-    , ui(new Ui::MainWindow), driverActionsProvider(new DriverActionsProvider(this))
-{
+        : QMainWindow(parent), ui(new Ui::MainWindow), driverActionsProvider(new DriverActionsProvider(this)) {
     ui->setupUi(this);
     updatePatterns();
     connect(driverActionsProvider, &DriverActionsProvider::actionOccurred, this, &MainWindow::driverActionOccurred);
@@ -16,35 +14,30 @@ MainWindow::MainWindow(QWidget *parent)
     ui->micInputGraph->start();
 }
 
-MainWindow::~MainWindow()
-{
+MainWindow::~MainWindow() {
     delete ui;
     delete driverActionsProvider;
 }
 
-bool MainWindow::itemSelected() const
-{
+bool MainWindow::itemSelected() const {
     return _itemSelected;
 }
 
-void MainWindow::setItemSelected(bool selected)
-{
+void MainWindow::setItemSelected(bool selected) {
     _itemSelected = selected;
     emit itemSelectedChanged(selected);
 }
 
-void MainWindow::on_addPatternButton_clicked()
-{
+void MainWindow::on_addPatternButton_clicked() {
     openPatternWindow(nullptr);
 }
 
-void MainWindow::updatePatterns()
-{
+void MainWindow::updatePatterns() {
     patterns = patternService.getPatterns();
     ui->inactivePatternsWidget->clear();
     ui->activePatternsWidget->clear();
 
-    for (auto&& pattern : patterns) {
+    for (auto &&pattern : patterns) {
         if (pattern.active()) {
             ui->activePatternsWidget->addItem(pattern.name());
         } else {
@@ -53,27 +46,24 @@ void MainWindow::updatePatterns()
     }
 }
 
-void MainWindow::addPattern(PatternModel *model)
-{
+void MainWindow::addPattern(PatternModel *model) {
     patternService.addPattern(*model);
     delete model;
     updatePatterns();
 }
 
-void MainWindow::on_activatePatternButton_clicked()
-{
+void MainWindow::on_activatePatternButton_clicked() {
     movePattern(ui->inactivePatternsWidget, ui->activePatternsWidget, true);
 }
 
-void MainWindow::on_deactivatePatternButton_clicked()
-{
+void MainWindow::on_deactivatePatternButton_clicked() {
     movePattern(ui->activePatternsWidget, ui->inactivePatternsWidget, false);
 }
 
-void MainWindow::movePattern(QListWidget *from, QListWidget *to, bool toActive)
-{
+void MainWindow::movePattern(QListWidget *from, QListWidget *to, bool toActive) {
     auto name = from->selectedItems().first()->text();
-    auto& pattern = *std::find_if(patterns.begin(), patterns.end(), [&name](const PatternModel& p) {return p.name() == name;});
+    auto &pattern = *std::find_if(patterns.begin(), patterns.end(),
+                                  [&name](const PatternModel &p) { return p.name() == name; });
 
     pattern.setActive(toActive);
     patternService.savePatterns(patterns);
@@ -82,37 +72,36 @@ void MainWindow::movePattern(QListWidget *from, QListWidget *to, bool toActive)
     to->addItem(pattern.name());
 }
 
-void MainWindow::openPatternWindow(PatternModel* model)
-{
+void MainWindow::openPatternWindow(PatternModel *model) {
     patternWindow = new PatternWindow(model, this);
     patternWindowConnections.clear();
     patternWindowConnections.push_back(
-        connect(patternWindow, &PatternWindow::finished, this, [=](int result) {
-            for (auto&& connection : patternWindowConnections) {
-                disconnect(connection);
-            }
-
-            if (result != QDialog::Accepted && !model) {
-                delete patternWindow->patternModel();
-            }
-
-            if (result == QDialog::Accepted) {
-                if (!model) {
-                    addPattern(patternWindow->patternModel());
-                } else {
-                    patternService.savePatterns(patterns);
+            connect(patternWindow, &PatternWindow::finished, this, [=](int result) {
+                for (auto &&connection : patternWindowConnections) {
+                    disconnect(connection);
                 }
-            }
 
-            delete patternWindow;
-        })
+                if (result != QDialog::Accepted && !model) {
+                    delete patternWindow->patternModel();
+                }
+
+                if (result == QDialog::Accepted) {
+                    if (!model) {
+                        addPattern(patternWindow->patternModel());
+                    } else {
+                        patternService.savePatterns(patterns);
+                        updatePatterns();
+                    }
+                }
+
+                delete patternWindow;
+            })
     );
 
     patternWindow->open();
 }
 
-QString MainWindow::getSelectedItem() const
-{
+QString MainWindow::getSelectedItem() const {
     if (!ui->activePatternsWidget->selectedItems().empty()) {
         return ui->activePatternsWidget->selectedItems().first()->text();
     } else {
@@ -120,8 +109,7 @@ QString MainWindow::getSelectedItem() const
     }
 }
 
-void MainWindow::on_deletePatternButton_clicked()
-{
+void MainWindow::on_deletePatternButton_clicked() {
     QString selectedName = getSelectedItem();
 
     if (!ui->activePatternsWidget->selectedItems().empty()) {
@@ -131,17 +119,16 @@ void MainWindow::on_deletePatternButton_clicked()
     }
 
     patterns.erase(
-                std::remove_if(
+            std::remove_if(
                     patterns.begin(),
                     patterns.end(),
-                    [&selectedName](const PatternModel& p) {return p.name() == selectedName;}),
-                patterns.end()
+                    [&selectedName](const PatternModel &p) { return p.name() == selectedName; }),
+            patterns.end()
     );
     patternService.savePatterns(patterns);
 }
 
-void MainWindow::on_inactivePatternsWidget_itemSelectionChanged()
-{
+void MainWindow::on_inactivePatternsWidget_itemSelectionChanged() {
     bool isSelected = !ui->inactivePatternsWidget->selectedItems().empty();
     emit inactiveItemSelectedChanged(isSelected);
 
@@ -151,8 +138,7 @@ void MainWindow::on_inactivePatternsWidget_itemSelectionChanged()
     };
 }
 
-void MainWindow::on_activePatternsWidget_itemSelectionChanged()
-{
+void MainWindow::on_activePatternsWidget_itemSelectionChanged() {
     bool isSelected = !ui->activePatternsWidget->selectedItems().empty();
     emit activeItemSelectedChanged(isSelected);
 
@@ -162,15 +148,13 @@ void MainWindow::on_activePatternsWidget_itemSelectionChanged()
     };
 }
 
-void MainWindow::driverActionOccurred(bool actionType)
-{
+void MainWindow::driverActionOccurred(bool actionType) {
     qInfo("Received action type %d", actionType);
 }
 
-void MainWindow::on_editPatternButton_clicked()
-{
+void MainWindow::on_editPatternButton_clicked() {
     QString selectedName = getSelectedItem();
-    openPatternWindow(std::find_if(patterns.begin(), patterns.end(), [=](const PatternModel& p) {
+    openPatternWindow(std::find_if(patterns.begin(), patterns.end(), [=](const PatternModel &p) {
         return p.name() == selectedName;
     }));
 }
