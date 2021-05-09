@@ -6,13 +6,14 @@
 #include "ui_patternwindow.h"
 
 MainWindow::MainWindow(QWidget *parent)
-        : QMainWindow(parent), ui(new Ui::MainWindow), driverActionsProvider(new DriverActionsProvider(this)) {
+        : QMainWindow(parent), ui(new Ui::MainWindow), recognizer(new Recognizer(this)) {
     ui->setupUi(this);
 
     updatePatterns();
     falsePattern = patternService.getFalsePattern();
 
-    connect(driverActionsProvider, &DriverActionsProvider::actionOccurred, this, &MainWindow::driverActionOccurred);
+    connect(recognizer, &Recognizer::valueFoundChanged, this, &MainWindow::driverActionOccurred);
+    connect(recognizer, &Recognizer::launchedChanged, this, &MainWindow::on_recognizer_launchedChanged);
 
     connect(this, &MainWindow::inactiveItemSelectedChanged, this, &MainWindow::checkActiveButton);
     connect(this, &MainWindow::activeItemSelectedChanged, this, &MainWindow::checkInactiveButton);
@@ -24,7 +25,10 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow() {
     delete ui;
-    delete driverActionsProvider;
+    if (recognizer->launched()) {
+        recognizer->stop();
+    }
+    delete recognizer;
 }
 
 bool MainWindow::itemSelected() const {
@@ -195,7 +199,11 @@ void MainWindow::on_toggleRecognizerButton_clicked() {
         return;
     }
 
-    // TODO: Implement integration with algorithm
+    if (recognizer->launched()) {
+        recognizer->stop();
+    } else {
+        recognizer->launch(patterns);
+    }
 }
 
 void MainWindow::checkInactiveButton() {
@@ -208,5 +216,9 @@ void MainWindow::checkActiveButton() {
 
 void MainWindow::checkEditButton() {
     emit editButtonEnabledChanged(_itemSelected);
+}
+
+void MainWindow::on_recognizer_launchedChanged(bool v) {
+    ui->toggleRecognizerButton->setText(v ? "Stop Recognizer" : "Launch Recognizer");
 }
 

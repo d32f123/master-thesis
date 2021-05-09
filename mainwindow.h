@@ -9,7 +9,7 @@
 
 #include "patternservice.h"
 #include "patternwindow.h"
-#include "driveractionsprovider.h"
+#include "recognizer.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -54,6 +54,7 @@ private slots:
     void on_editPatternButton_clicked();
     void on_falsePatternButton_clicked();
     void on_toggleRecognizerButton_clicked();
+    void on_recognizer_launchedChanged(bool v);
 
     void checkInactiveButton();
     void checkActiveButton();
@@ -64,7 +65,10 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    DriverActionsProvider *driverActionsProvider;
+    PatternWindow *patternWindow;
+    QVector<QMetaObject::Connection> patternWindowConnections;
+
+    Recognizer *recognizer;
     PatternService patternService {};
 
     QVector<PatternModel> patterns;
@@ -78,9 +82,6 @@ private:
     bool _inactiveItemSelected = false;
     bool _activeItemSelected = false;
     bool _itemSelected = false;
-
-    PatternWindow *patternWindow;
-    QVector<QMetaObject::Connection> patternWindowConnections;
 };
 
 #endif // MAINWINDOW_H

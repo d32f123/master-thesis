@@ -13,13 +13,16 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt5 COMPONENTS Widgets Core Gui OpenGL Concurrent Multimedia Charts REQUIRED)
 
+find_library(ZMQ NAMES zmq)
+find_library(ZMQPP NAMES zmqpp)
+find_path(ZMQPP_INCLUDES NAMES zmqpp/zmqpp.hpp)
+
+
 set(PROJECT_SOURCES
         main.cpp
         mainwindow.cpp
         mainwindow.h
         mainwindow.ui
-        driveractionsprovider.cpp
-        driveractionsprovider.h
         iodeviceplotter.cpp
         iodeviceplotter.h
         iodeviceplotterwidget.cpp
@@ -33,11 +36,13 @@ set(PROJECT_SOURCES
         patternwindow.cpp
         patternwindow.h
         patternwindow.ui
-        )
+        recognizer.cpp
+        recognizer.h)
 
 add_executable(TwitFilC ${PROJECT_SOURCES})
 
-target_link_libraries(TwitFilC PRIVATE Qt5::Widgets Qt5::Charts Qt5::Concurrent Qt5::Multimedia)
+include_directories(${ZMQPP_INCLUDES})
+target_link_libraries(TwitFilC PRIVATE Qt5::Widgets Qt5::Charts Qt5::Concurrent Qt5::Multimedia ${ZMQ} ${ZMQPP})
 
 set_target_properties(TwitFilC PROPERTIES
         MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
