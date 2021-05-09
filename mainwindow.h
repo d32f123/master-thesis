@@ -19,43 +19,47 @@ Q_OBJECT;
 public:
     MainWindow(QWidget *parent = nullptr);
 
-    ~MainWindow();
+    ~MainWindow() override;
 
     bool itemSelected() const;
+    void setItemSelected(bool v);
 
-    void setItemSelected(bool selected);
+    bool activeItemSelected() const;
+    void setActiveItemSelected(bool v);
+
+    bool inactiveItemSelected() const;
+    void setInactiveItemSelected(bool v);
 
 signals:
+    void itemSelectedChanged();
+    void inactiveItemSelectedChanged();
+    void activeItemSelectedChanged();
 
-    void itemSelectedChanged(bool active);
-
-    void inactiveItemSelectedChanged(bool active);
-
-    void activeItemSelectedChanged(bool active);
+    void toInactiveButtonEnabledChanged(bool);
+    void toActiveButtonEnabledChanged(bool);
+    void editButtonEnabledChanged(bool);
 
 public slots:
-
     void driverActionOccurred(bool actionType);
 
 private slots:
-
     void on_addPatternButton_clicked();
+    void on_activatePatternButton_clicked();
+    void on_deactivatePatternButton_clicked();
+    void on_deletePatternButton_clicked();
+    void on_inactivePatternsWidget_itemSelectionChanged();
+    void on_activePatternsWidget_itemSelectionChanged();
+    void on_editPatternButton_clicked();
+    void on_falsePatternButton_clicked();
+    void on_toggleRecognizerButton_clicked();
+
+    void checkInactiveButton();
+    void checkActiveButton();
+    void checkEditButton();
 
     void updatePatterns();
-
     void addPattern(PatternModel *model);
 
-    void on_activatePatternButton_clicked();
-
-    void on_deactivatePatternButton_clicked();
-
-    void on_deletePatternButton_clicked();
-
-    void on_inactivePatternsWidget_itemSelectionChanged();
-
-    void on_activePatternsWidget_itemSelectionChanged();
-
-    void on_editPatternButton_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -69,9 +73,9 @@ private:
 
     QString getSelectedItem() const;
 
-    bool inactiveItemSelected;
-    bool activeItemSelected;
-    bool _itemSelected;
+    bool _inactiveItemSelected = false;
+    bool _activeItemSelected = false;
+    bool _itemSelected = false;
 
     PatternWindow *patternWindow;
     QVector<QMetaObject::Connection> patternWindowConnections;

@@ -10,6 +10,11 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     updatePatterns();
     connect(driverActionsProvider, &DriverActionsProvider::actionOccurred, this, &MainWindow::driverActionOccurred);
+
+    connect(this, &MainWindow::inactiveItemSelectedChanged, this, &MainWindow::checkActiveButton);
+    connect(this, &MainWindow::activeItemSelectedChanged, this, &MainWindow::checkInactiveButton);
+    connect(this, &MainWindow::itemSelectedChanged, this, &MainWindow::checkEditButton);
+
     ui->micInputGraph->initialize(QAudioDeviceInfo::defaultInputDevice());
     ui->micInputGraph->start();
 }
@@ -25,7 +30,33 @@ bool MainWindow::itemSelected() const {
 
 void MainWindow::setItemSelected(bool selected) {
     _itemSelected = selected;
-    emit itemSelectedChanged(selected);
+    emit itemSelectedChanged();
+}
+
+bool MainWindow::activeItemSelected() const {
+    return _activeItemSelected;
+}
+
+void MainWindow::setActiveItemSelected(bool v) {
+    _activeItemSelected = v;
+    emit activeItemSelectedChanged();
+
+    if ((!v && !_inactiveItemSelected && _itemSelected) || (v && !_itemSelected)) {
+        setItemSelected(v);
+    };
+}
+
+bool MainWindow::inactiveItemSelected() const {
+    return _inactiveItemSelected;
+}
+
+void MainWindow::setInactiveItemSelected(bool v) {
+    _inactiveItemSelected = v;
+    emit inactiveItemSelectedChanged();
+
+    if ((!v && !_activeItemSelected && _itemSelected) || (v && !_itemSelected)) {
+        setItemSelected(v);
+    };
 }
 
 void MainWindow::on_addPatternButton_clicked() {
@@ -130,22 +161,12 @@ void MainWindow::on_deletePatternButton_clicked() {
 
 void MainWindow::on_inactivePatternsWidget_itemSelectionChanged() {
     bool isSelected = !ui->inactivePatternsWidget->selectedItems().empty();
-    emit inactiveItemSelectedChanged(isSelected);
-
-    inactiveItemSelected = isSelected;
-    if ((!isSelected && !activeItemSelected && _itemSelected) || (isSelected && !_itemSelected)) {
-        setItemSelected(isSelected);
-    };
+    setInactiveItemSelected(isSelected);
 }
 
 void MainWindow::on_activePatternsWidget_itemSelectionChanged() {
     bool isSelected = !ui->activePatternsWidget->selectedItems().empty();
-    emit activeItemSelectedChanged(isSelected);
-
-    activeItemSelected = isSelected;
-    if ((!isSelected && !inactiveItemSelected && _itemSelected) || (isSelected && !_itemSelected)) {
-        setItemSelected(isSelected);
-    };
+    setActiveItemSelected(isSelected);
 }
 
 void MainWindow::driverActionOccurred(bool actionType) {
@@ -158,3 +179,24 @@ void MainWindow::on_editPatternButton_clicked() {
         return p.name() == selectedName;
     }));
 }
+
+void MainWindow::on_falsePatternButton_clicked() {
+
+}
+
+void MainWindow::on_toggleRecognizerButton_clicked() {
+
+}
+
+void MainWindow::checkInactiveButton() {
+    emit toInactiveButtonEnabledChanged(_activeItemSelected);
+}
+
+void MainWindow::checkActiveButton() {
+    emit toActiveButtonEnabledChanged(_inactiveItemSelected);
+}
+
+void MainWindow::checkEditButton() {
+    emit editButtonEnabledChanged(_itemSelected);
+}
+

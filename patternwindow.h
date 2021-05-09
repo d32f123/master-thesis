@@ -18,7 +18,7 @@ Q_OBJECT
 public:
     explicit PatternWindow(PatternModel *model = nullptr, QWidget *parent = nullptr);
 
-    ~PatternWindow();
+    ~PatternWindow() override;
 
     bool recording() const;
     bool recordingSelected() const;
@@ -46,14 +46,13 @@ private slots:
     void on_PatternWindow_editModeChanged();
     void on_PatternWindow_recordingChanged();
     void on_recordingsListWidget_itemSelectionChanged();
+    void on_deleteRecordingButton_clicked();
 
     void checkPlayButton();
     void checkDeleteButton();
     void checkToggleButton();
     void checkCreateButton();
     void checkCancelButton();
-
-    void on_deleteRecordingButton_clicked();
 
 signals:
     void recordingChanged();
@@ -79,7 +78,7 @@ private:
 
     QListWidgetItem* add_recording(const QByteArray& recording);
 
-    QList<QByteArray> _recordings;
+    QVector<QByteArray> _recordings;
     QByteArray* _selectedRecording = nullptr;
 
     bool isRecording = false;
