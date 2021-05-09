@@ -162,8 +162,7 @@ void PatternWindow::on_toggleRecordingButton_clicked() {
     }
 }
 
-void PatternWindow::on_deleteRecordingButton_clicked()
-{
+void PatternWindow::on_deleteRecordingButton_clicked() {
     auto item = ui->recordingsListWidget->selectedItems().first();
     auto idx = item->data(Qt::UserRole).toInt();
     for (auto i = idx + 1; i < ui->recordingsListWidget->count(); ++i) {

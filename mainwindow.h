@@ -1,6 +1,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <functional>
+
 #include <QMainWindow>
 #include <QStringList>
 #include <QListWidget>
@@ -60,16 +62,16 @@ private slots:
     void updatePatterns();
     void addPattern(PatternModel *model);
 
-
 private:
     Ui::MainWindow *ui;
     DriverActionsProvider *driverActionsProvider;
-    PatternService patternService;
+    PatternService patternService {};
+
     QVector<PatternModel> patterns;
+    PatternModel falsePattern {};
 
     void movePattern(QListWidget *from, QListWidget *to, bool toActive);
-
-    void openPatternWindow(PatternModel *model);
+    void openPatternWindow(PatternModel *model, const std::function<void(PatternModel*)>& acceptedCallback);
 
     QString getSelectedItem() const;
 

@@ -142,8 +142,11 @@ int PatternService::recordingIdxFromPath(const QString &recording_path) {
     return recording_path.section(RECORDING_FILE_EXTENSION, 0, 0).toInt();
 }
 
-std::optional<PatternModel> PatternService::getFalsePattern() {
-    return getPattern(PatternService::patternPathFromName(FALSE_PATTERN_NAME));
+PatternModel PatternService::getFalsePattern() {
+    if (auto pattern = getPattern(PatternService::patternPathFromName(FALSE_PATTERN_NAME)); pattern) {
+        return pattern.value();
+    }
+    return {FALSE_PATTERN_NAME, true, {}};
 }
 
 void PatternService::saveFalsePattern(const PatternModel &pattern) {

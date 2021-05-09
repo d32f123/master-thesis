@@ -18,7 +18,7 @@ public:
     void savePatterns(const QVector<PatternModel> &patterns);
     QVector<PatternModel> getPatterns();
 
-    std::optional<PatternModel> getFalsePattern();
+    PatternModel getFalsePattern();
     void saveFalsePattern(const PatternModel& pattern);
 protected:
     const static QString PATTERNS_DIRECTORY;

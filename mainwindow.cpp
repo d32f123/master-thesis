@@ -8,7 +8,10 @@
 MainWindow::MainWindow(QWidget *parent)
         : QMainWindow(parent), ui(new Ui::MainWindow), driverActionsProvider(new DriverActionsProvider(this)) {
     ui->setupUi(this);
+
     updatePatterns();
+    falsePattern = patternService.getFalsePattern();
+
     connect(driverActionsProvider, &DriverActionsProvider::actionOccurred, this, &MainWindow::driverActionOccurred);
 
     connect(this, &MainWindow::inactiveItemSelectedChanged, this, &MainWindow::checkActiveButton);
@@ -60,7 +63,9 @@ void MainWindow::setInactiveItemSelected(bool v) {
 }
 
 void MainWindow::on_addPatternButton_clicked() {
-    openPatternWindow(nullptr);
+    openPatternWindow(nullptr, [this](PatternModel *model) {
+        this->addPattern(model);
+    });
 }
 
 void MainWindow::updatePatterns() {
@@ -103,7 +108,7 @@ void MainWindow::movePattern(QListWidget *from, QListWidget *to, bool toActive) 
     to->addItem(pattern.name());
 }
 
-void MainWindow::openPatternWindow(PatternModel *model) {
+void MainWindow::openPatternWindow(PatternModel *model, const std::function<void(PatternModel *)> &acceptedCallback) {
     patternWindow = new PatternWindow(model, this);
     patternWindowConnections.clear();
     patternWindowConnections.push_back(
@@ -117,12 +122,7 @@ void MainWindow::openPatternWindow(PatternModel *model) {
                 }
 
                 if (result == QDialog::Accepted) {
-                    if (!model) {
-                        addPattern(patternWindow->patternModel());
-                    } else {
-                        patternService.savePatterns(patterns);
-                        updatePatterns();
-                    }
+                    acceptedCallback(patternWindow->patternModel());
                 }
 
                 delete patternWindow;
@@ -177,15 +177,25 @@ void MainWindow::on_editPatternButton_clicked() {
     QString selectedName = getSelectedItem();
     openPatternWindow(std::find_if(patterns.begin(), patterns.end(), [=](const PatternModel &p) {
         return p.name() == selectedName;
-    }));
+    }), [this](PatternModel *model) {
+        patternService.savePatterns(patterns);
+        updatePatterns();
+    });
 }
 
 void MainWindow::on_falsePatternButton_clicked() {
-
+    openPatternWindow(&falsePattern, [this](PatternModel *model) {
+        patternService.saveFalsePattern(falsePattern);
+    });
 }
 
 void MainWindow::on_toggleRecognizerButton_clicked() {
+    if (falsePattern.recordings().size() < 3) {
+        on_falsePatternButton_clicked();
+        return;
+    }
 
+    // TODO: Implement integration with algorithm
 }
 
 void MainWindow::checkInactiveButton() {
