@@ -54,11 +54,11 @@ private slots:
     void on_editPatternButton_clicked();
     void on_falsePatternButton_clicked();
     void on_toggleRecognizerButton_clicked();
-    void on_recognizer_launchedChanged(bool v);
 
     void checkInactiveButton();
     void checkActiveButton();
     void checkEditButton();
+    void recognizerLaunchedChanged(bool v);
 
     void updatePatterns();
     void addPattern(PatternModel *model);

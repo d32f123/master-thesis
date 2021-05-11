@@ -16,6 +16,7 @@ find_package(Qt5 COMPONENTS Widgets Core Gui OpenGL Concurrent Multimedia Charts
 find_library(ZMQ NAMES zmq)
 find_library(ZMQPP NAMES zmqpp)
 find_path(ZMQPP_INCLUDES NAMES zmqpp/zmqpp.hpp)
+find_package(Python3 COMPONENTS Interpreter Development)
 
 
 set(PROJECT_SOURCES
@@ -37,12 +38,15 @@ set(PROJECT_SOURCES
         patternwindow.h
         patternwindow.ui
         recognizer.cpp
-        recognizer.h)
+        recognizer.h
+        worker.h)
 
 add_executable(TwitFilC ${PROJECT_SOURCES})
 
-include_directories(${ZMQPP_INCLUDES})
-target_link_libraries(TwitFilC PRIVATE Qt5::Widgets Qt5::Charts Qt5::Concurrent Qt5::Multimedia ${ZMQ} ${ZMQPP})
+include_directories(${ZMQPP_INCLUDES} ${Python3_INCLUDE_DIRS})
+target_link_options(TwitFilC PRIVATE ${Python3_LINK_OPTIONS})
+target_link_directories(TwitFilC PRIVATE ${Python3_LIBRARY_DIRS})
+target_link_libraries(TwitFilC PRIVATE Qt5::Widgets Qt5::Charts Qt5::Concurrent Qt5::Multimedia ${ZMQ} ${ZMQPP} ${Python3_LIBRARIES})
 
 set_target_properties(TwitFilC PROPERTIES
         MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com

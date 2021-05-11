@@ -1,11 +1,31 @@
 #ifndef TWITFIL_RECOGNIZER_H
 #define TWITFIL_RECOGNIZER_H
 
+#include <utility>
+
 #include <QVector>
 #include <QFuture>
+#include <QThread>
+
 #include "patternmodel.h"
 
 #include <zmqpp/zmqpp.hpp>
+
+#include "worker.h"
+
+class recognizer : public Worker {
+Q_OBJECT
+protected:
+    static const char* IPC_ENDPOINT;
+    static const char* DONE_ENDPOINT;
+
+    void run() override;
+    void loop() override;
+
+    zmqpp::context ctx {};
+    zmqpp::socket socket {ctx, zmqpp::socket_type::sub};
+    zmqpp::socket doneSocket {ctx, zmqpp::socket_type::pub};
+};
 
 class Recognizer : public QObject {
     Q_OBJECT
@@ -21,14 +41,13 @@ signals:
     void valueFoundChanged(bool);
     void launchedChanged(bool);
 
-protected:
-    static const char* IPC_ENDPOINT;
+private slots:
+    void recognizerChanged(bool v);
+    void recognizerDone();
 
-    bool *_shouldExit = nullptr;
-    QFuture<void> _poller;
+protected:
+    std::unique_ptr<recognizer> _recognizer = nullptr;
     bool _isLaunched = false;
-    zmqpp::context ctx;
-    zmqpp::socket socket;
 };
 
 

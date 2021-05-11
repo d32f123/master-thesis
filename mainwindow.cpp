@@ -13,7 +13,7 @@ MainWindow::MainWindow(QWidget *parent)
     falsePattern = patternService.getFalsePattern();
 
     connect(recognizer, &Recognizer::valueFoundChanged, this, &MainWindow::driverActionOccurred);
-    connect(recognizer, &Recognizer::launchedChanged, this, &MainWindow::on_recognizer_launchedChanged);
+    connect(recognizer, &Recognizer::launchedChanged, this, &MainWindow::recognizerLaunchedChanged);
 
     connect(this, &MainWindow::inactiveItemSelectedChanged, this, &MainWindow::checkActiveButton);
     connect(this, &MainWindow::activeItemSelectedChanged, this, &MainWindow::checkInactiveButton);
@@ -175,6 +175,11 @@ void MainWindow::on_activePatternsWidget_itemSelectionChanged() {
 
 void MainWindow::driverActionOccurred(bool actionType) {
     qInfo("Received action type %d", actionType);
+    if (actionType) {
+        ui->micStatusWidget->setStyleSheet("background-color: green;");
+    } else {
+        ui->micStatusWidget->setStyleSheet("background-color: red;");
+    }
 }
 
 void MainWindow::on_editPatternButton_clicked() {
@@ -201,6 +206,7 @@ void MainWindow::on_toggleRecognizerButton_clicked() {
 
     if (recognizer->launched()) {
         recognizer->stop();
+        ui->toggleRecognizerButton->setEnabled(false);
     } else {
         recognizer->launch(patterns);
     }
@@ -218,7 +224,13 @@ void MainWindow::checkEditButton() {
     emit editButtonEnabledChanged(_itemSelected);
 }
 
-void MainWindow::on_recognizer_launchedChanged(bool v) {
-    ui->toggleRecognizerButton->setText(v ? "Stop Recognizer" : "Launch Recognizer");
+void MainWindow::recognizerLaunchedChanged(bool v) {
+    if (!v) {
+        ui->toggleRecognizerButton->setText("Launch Recognizer");
+        ui->toggleRecognizerButton->setEnabled(true);
+        ui->micStatusWidget->setStyleSheet("background-color: gray;");
+    } else {
+        ui->toggleRecognizerButton->setText("Stop Recognizer");
+        ui->micStatusWidget->setStyleSheet("background-color: red;");
+    }
 }
-
