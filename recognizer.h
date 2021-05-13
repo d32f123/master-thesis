@@ -6,6 +6,7 @@
 #include <QVector>
 #include <QFuture>
 #include <QThread>
+#include <QProcess>
 
 #include "patternmodel.h"
 

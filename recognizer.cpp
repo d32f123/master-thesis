@@ -1,7 +1,7 @@
 #include "recognizer.h"
 
-#include <condition_variable>
 #include <QtConcurrent>
+#include <QProcess>
 
 #define PY_SSIZE_T_CLEAN
 
@@ -50,40 +50,29 @@ void recognizer::run() {
     socket.bind(IPC_ENDPOINT);
 
     doneSocket.bind(DONE_ENDPOINT);
-    std::mutex m{};
-    std::condition_variable cv {};
-    QtConcurrent::run([&m, &cv]() {
-        qInfo("python starting");
-        auto programName = std::string("recog");
-        std::string path = "twitrecog.py";
-        FILE *p = fopen(path.c_str(), "rb");
-        if (!p) {
-            qWarning("Failed to open twitrecog.py");
-            return;
-        }
 
-        Py_SetProgramName(programName.data());
-        Py_Initialize();
-        PyRun_SimpleFile(p, path.c_str());
-        fclose(p);
+    qInfo("Launching python");
+    QProcess python_process{};
+    python_process.start("python3", {"twitrecog.py"});
 
-        {
-            std::unique_lock l{m};
-            cv.notify_all();
-        }
+    if (python_process.state() == QProcess::ProcessState::NotRunning ||
+        python_process.error() == QProcess::ProcessError::FailedToStart) {
+        qWarning("Failed to start python: %s", qUtf8Printable(python_process.errorString()));
+        QByteArray std_out = python_process.readAll();
+        qWarning("Std out: %s", std_out.data());
+        return;
+    }
 
-        qInfo("Python exiting");
-    });
+    qInfo("Launched python");
     qInfo("Recognizer loop");
     Worker::run();
-    {
-        std::unique_lock l{m};
-        qInfo("Recognizer exiting");
-        doneSocket.send("done");
-        cv.wait(l);
-        socket.close();
-        doneSocket.close();
-    }
+    qInfo("Recognizer exiting");
+    doneSocket.send("done");
+    python_process.waitForFinished();
+    QByteArray std_out = python_process.readAll();
+    qWarning("Std out: %s", std_out.data());
+    socket.close();
+    doneSocket.close();
 
     emit done();
 }
