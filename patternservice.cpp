@@ -8,7 +8,7 @@
 const QString PatternService::PATTERNS_DIRECTORY = "patterns";
 const QString PatternService::PATTERN_PATH_SUFFIX = "_pattern";
 const QString PatternService::FALSE_PATTERN_NAME = "false";
-const QString PatternService::RECORDING_FILE_EXTENSION = ".pcm";
+const QString PatternService::RECORDING_FILE_EXTENSION = ".raw";
 const QString PatternService::ACTIVE_FILE_NAME = "active.txt";
 
 PatternService::PatternService() {
