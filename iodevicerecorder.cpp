@@ -37,10 +37,10 @@ QAudioFormat IODeviceRecorder::defaultFormat() {
     QAudioFormat audioFormat;
     audioFormat.setSampleRate(sampleRate);
     audioFormat.setChannelCount(1);
-    audioFormat.setSampleSize(8);
+    audioFormat.setSampleSize(sizeof(float) * 8);
     audioFormat.setCodec("audio/pcm");
-    audioFormat.setByteOrder(QAudioFormat::LittleEndian);
-    audioFormat.setSampleType(QAudioFormat::UnSignedInt);
+//    audioFormat.setByteOrder(QAudioFormat::LittleEndian);
+    audioFormat.setSampleType(sampleType);
 
     return audioFormat;
 }

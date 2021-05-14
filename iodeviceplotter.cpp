@@ -25,7 +25,8 @@ qint64 IODevicePlotter::writeData(const char *data, qint64 maxSize) {
     }
 
     int start = 0;
-    const int availableSamples = int(maxSize) / resolution;
+    // 2 for transfer from char to float (1->4)
+    int availableSamples = int(maxSize >> (2 + resolution_power));
     if (availableSamples < sampleCount) {
         start = sampleCount - availableSamples;
         for (int s = 0; s < start; ++s) {
@@ -33,10 +34,11 @@ qint64 IODevicePlotter::writeData(const char *data, qint64 maxSize) {
         }
     }
 
-    for (int s = start; s < sampleCount; ++s, data += IODevicePlotter::resolution) {
-        buf[s].setY(qreal(uchar(*data) - 128) / qreal(128));
+    const auto* float_data = reinterpret_cast<const float*>(data);
+    for (int s = start; s < sampleCount; ++s, float_data += IODevicePlotter::resolution) {
+        buf[s].setY(qreal(*float_data));
     }
 
     series->replace(buf);
-    return (sampleCount - start) * resolution;
+    return ((sampleCount - start) << (2 + resolution_power));
 }

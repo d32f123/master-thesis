@@ -24,7 +24,8 @@ public:
 
     static QAudioFormat defaultFormat();
 
-    static const int sampleRate = 44100;
+    static const int sampleRate = 22050;
+    static const QAudioFormat::SampleType sampleType = QAudioFormat::SampleType::Float;
 
 private:
     QAudioInput *audioInput;

@@ -18,6 +18,7 @@ public:
 
     static const int sampleCount = 16000;
     static const int resolution = 8;
+    static const int resolution_power = 3;
 protected:
     qint64 readData(char *data, qint64 maxSize) override;
 
