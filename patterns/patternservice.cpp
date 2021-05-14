@@ -10,6 +10,7 @@ const QString PatternService::PATTERN_PATH_SUFFIX = "_pattern";
 const QString PatternService::FALSE_PATTERN_NAME = "false";
 const QString PatternService::RECORDING_FILE_EXTENSION = ".raw";
 const QString PatternService::ACTIVE_FILE_NAME = "active.txt";
+const QString PatternService::MODELS_DIRECTORY = "model";
 
 PatternService::PatternService() {
     QDir dir = PatternService::getRootDirectory();

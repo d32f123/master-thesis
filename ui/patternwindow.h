@@ -5,8 +5,8 @@
 #include <QListWidgetItem>
 #include <QtMultimedia/QAudioOutput>
 
-#include "patternmodel.h"
-#include "iodevicerecorder.h"
+#include "patterns/patternmodel.h"
+#include "io/iodevicerecorder.h"
 
 namespace Ui {
     class PatternWindow;

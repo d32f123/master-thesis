@@ -8,11 +8,11 @@
 #include <QThread>
 #include <QProcess>
 
-#include "patternmodel.h"
+#include "patterns/patternmodel.h"
 
 #include <zmqpp/zmqpp.hpp>
 
-#include "worker.h"
+#include "misc/worker.h"
 
 class recognizer : public Worker {
 Q_OBJECT

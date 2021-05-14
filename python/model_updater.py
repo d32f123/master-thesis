@@ -3,13 +3,7 @@ import sys
 import glob
 import numpy as np
 from transformer import mfcc_transform
-from config import sr, input_dim
-
-pattern_path_suffix = "_pattern"
-recording_suffix = ".raw"
-recordings_glob = "*" + recording_suffix
-model_suffix = ".model"
-active_path = 'active.txt'
+from config import *
 
 
 def main():
@@ -17,8 +11,8 @@ def main():
     patterns_to_update = []
     if len(sys.argv) > 2:
         patterns_to_update = sys.argv[2].split(',')
-    patterns_path = os.path.join(root_path, "patterns")
-    models_path = os.path.join(root_path, "model")
+    patterns_path = os.path.join(root_path, patterns_rel_path)
+    models_path = os.path.join(root_path, models_rel_path)
 
     for pattern_pathname in os.listdir(patterns_path):
         pattern_name = pattern_pathname.replace(pattern_path_suffix, "")

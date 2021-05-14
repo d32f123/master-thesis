@@ -7,9 +7,9 @@
 #include <QStringList>
 #include <QListWidget>
 
-#include "patternservice.h"
+#include "patterns/patternservice.h"
 #include "patternwindow.h"
-#include "recognizer.h"
+#include "cython/recognizer.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }

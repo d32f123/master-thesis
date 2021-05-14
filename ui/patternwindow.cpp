@@ -3,7 +3,7 @@
 
 #include <QtMultimedia/QAudioOutput>
 
-#include "iodevicerecorder.h"
+#include "io/iodevicerecorder.h"
 
 PatternWindow::PatternWindow(PatternModel *model, QWidget *parent) :
         QDialog(parent, Qt::Dialog),

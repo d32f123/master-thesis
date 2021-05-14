@@ -26,6 +26,7 @@ protected:
     const static QString FALSE_PATTERN_NAME;
     const static QString RECORDING_FILE_EXTENSION;
     const static QString ACTIVE_FILE_NAME;
+    const static QString MODELS_DIRECTORY;
     QDir patterns_directory;
 
     void savePattern(const PatternModel& pattern);
