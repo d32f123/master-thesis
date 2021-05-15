@@ -4,20 +4,33 @@
 #include "ui_mainwindow.h"
 #include "patternwindow.h"
 #include "ui_patternwindow.h"
+#include "cython/preprocessor.h"
+
+#include <QtConcurrent>
 
 MainWindow::MainWindow(QWidget *parent)
-        : QMainWindow(parent), ui(new Ui::MainWindow), recognizer(new Recognizer(this)) {
+        : QMainWindow(parent), ui(new Ui::MainWindow),
+        recognizer(new Recognizer(this)), preprocessor(new Preprocessor(this)) {
     ui->setupUi(this);
-
-    updatePatterns();
-    falsePattern = patternService.getFalsePattern();
 
     connect(recognizer, &Recognizer::valueFoundChanged, this, &MainWindow::driverActionOccurred);
     connect(recognizer, &Recognizer::launchedChanged, this, &MainWindow::recognizerLaunchedChanged);
 
+    connect(preprocessor, &Preprocessor::finished, this, &MainWindow::preprocessingDone, Qt::QueuedConnection);
+
     connect(this, &MainWindow::inactiveItemSelectedChanged, this, &MainWindow::checkActiveButton);
     connect(this, &MainWindow::activeItemSelectedChanged, this, &MainWindow::checkInactiveButton);
     connect(this, &MainWindow::itemSelectedChanged, this, &MainWindow::checkEditButton);
+
+    connect(this, &MainWindow::recognizingChanged, this, &MainWindow::checkActiveButton);
+    connect(this, &MainWindow::recognizingChanged, this, &MainWindow::checkInactiveButton);
+    connect(this, &MainWindow::recognizingChanged, this, &MainWindow::checkEditButton);
+
+    connect(this, &MainWindow::activeItemsAvailableChanged, this, &MainWindow::checkRecognizerButton);
+    connect(this, &MainWindow::preprocessingChanged, this, &MainWindow::checkRecognizerButton);
+
+    updatePatterns();
+    falsePattern = PatternService::getFalsePattern();
 
     ui->micInputGraph->initialize(QAudioDeviceInfo::defaultInputDevice());
     ui->micInputGraph->start();
@@ -66,6 +79,33 @@ void MainWindow::setInactiveItemSelected(bool v) {
     };
 }
 
+bool MainWindow::preprocessing() const {
+    return _preprocessing;
+}
+
+void MainWindow::setPreprocessing(bool v) {
+    _preprocessing = v;
+    emit preprocessingChanged();
+}
+
+bool MainWindow::activeItemsAvailable() const {
+    return _activeItemsAvailable;
+}
+
+void MainWindow::setActiveItemsAvailable(bool v) {
+    _activeItemsAvailable = v;
+    emit activeItemsAvailableChanged();
+}
+
+bool MainWindow::recognizing() const {
+    return _recognizing;
+}
+
+void MainWindow::setRecognizing(bool v) {
+    _recognizing = v;
+    emit recognizingChanged();
+}
+
 void MainWindow::on_addPatternButton_clicked() {
     openPatternWindow(nullptr, [this](PatternModel *model) {
         this->addPattern(model);
@@ -73,31 +113,43 @@ void MainWindow::on_addPatternButton_clicked() {
 }
 
 void MainWindow::updatePatterns() {
-    patterns = patternService.getPatterns();
+    patterns = PatternService::getPatterns();
     ui->inactivePatternsWidget->clear();
     ui->activePatternsWidget->clear();
 
+    bool activeItemsPresent = false;
     for (auto &&pattern : patterns) {
         if (pattern.active()) {
+            activeItemsPresent = true;
             ui->activePatternsWidget->addItem(pattern.name());
         } else {
             ui->inactivePatternsWidget->addItem(pattern.name());
         }
     }
+    setActiveItemsAvailable(activeItemsPresent);
 }
 
 void MainWindow::addPattern(PatternModel *model) {
-    patternService.addPattern(*model);
+    PatternService::addPattern(*model);
+    this->launchPreprocessor();
+    delete model;
+    updatePatterns();
+}
+
+void MainWindow::deletePattern(PatternModel *model) {
+    PatternService::deletePattern(*model);
     delete model;
     updatePatterns();
 }
 
 void MainWindow::on_activatePatternButton_clicked() {
     movePattern(ui->inactivePatternsWidget, ui->activePatternsWidget, true);
+    setActiveItemsAvailable(true);
 }
 
 void MainWindow::on_deactivatePatternButton_clicked() {
     movePattern(ui->activePatternsWidget, ui->inactivePatternsWidget, false);
+    if (ui->activePatternsWidget->count() == 0) setActiveItemsAvailable(false);
 }
 
 void MainWindow::movePattern(QListWidget *from, QListWidget *to, bool toActive) {
@@ -106,7 +158,7 @@ void MainWindow::movePattern(QListWidget *from, QListWidget *to, bool toActive) 
                                   [&name](const PatternModel &p) { return p.name() == name; });
 
     pattern.setActive(toActive);
-    patternService.savePatterns(patterns);
+    PatternService::savePatterns(patterns);
 
     delete from->selectedItems().first();
     to->addItem(pattern.name());
@@ -146,21 +198,20 @@ QString MainWindow::getSelectedItem() const {
 
 void MainWindow::on_deletePatternButton_clicked() {
     QString selectedName = getSelectedItem();
-
     if (!ui->activePatternsWidget->selectedItems().empty()) {
         delete ui->activePatternsWidget->selectedItems().first();
     } else {
         delete ui->inactivePatternsWidget->selectedItems().first();
     }
 
-    patterns.erase(
-            std::remove_if(
-                    patterns.begin(),
-                    patterns.end(),
-                    [&selectedName](const PatternModel &p) { return p.name() == selectedName; }),
-            patterns.end()
+    auto removedModelIt = std::find_if(
+            patterns.begin(),
+            patterns.end(),
+            [&selectedName](const PatternModel &p) { return p.name() == selectedName; }
     );
-    patternService.savePatterns(patterns);
+    this->deletePattern(removedModelIt);
+    patterns.erase(removedModelIt);
+    if (ui->activePatternsWidget->count() == 0) setActiveItemsAvailable(false);
 }
 
 void MainWindow::on_inactivePatternsWidget_itemSelectionChanged() {
@@ -182,20 +233,31 @@ void MainWindow::driverActionOccurred(bool actionType) {
     }
 }
 
+void MainWindow::preprocessingDone() {
+    setPreprocessing(false);
+}
+
 void MainWindow::on_editPatternButton_clicked() {
     QString selectedName = getSelectedItem();
     openPatternWindow(std::find_if(patterns.begin(), patterns.end(), [=](const PatternModel &p) {
         return p.name() == selectedName;
     }), [this](PatternModel *model) {
-        patternService.savePatterns(patterns);
+        PatternService::savePatterns(patterns);
+        this->launchPreprocessor();
         updatePatterns();
     });
 }
 
 void MainWindow::on_falsePatternButton_clicked() {
     openPatternWindow(&falsePattern, [this](PatternModel *model) {
-        patternService.saveFalsePattern(falsePattern);
+        PatternService::saveFalsePattern(falsePattern);
+        this->launchPreprocessor();
     });
+}
+
+void MainWindow::launchPreprocessor() {
+    setPreprocessing(true);
+    preprocessor->start();
 }
 
 void MainWindow::on_toggleRecognizerButton_clicked() {
@@ -207,21 +269,27 @@ void MainWindow::on_toggleRecognizerButton_clicked() {
     if (recognizer->launched()) {
         recognizer->stop();
         ui->toggleRecognizerButton->setEnabled(false);
+        setRecognizing(false);
     } else {
         recognizer->launch(patterns);
+        setRecognizing(true);
     }
 }
 
 void MainWindow::checkInactiveButton() {
-    emit toInactiveButtonEnabledChanged(_activeItemSelected);
+    emit toInactiveButtonEnabledChanged(_activeItemSelected && !_recognizing);
 }
 
 void MainWindow::checkActiveButton() {
-    emit toActiveButtonEnabledChanged(_inactiveItemSelected);
+    emit toActiveButtonEnabledChanged(_inactiveItemSelected && !_recognizing);
 }
 
 void MainWindow::checkEditButton() {
-    emit editButtonEnabledChanged(_itemSelected);
+    emit editButtonEnabledChanged(_itemSelected && !_recognizing);
+}
+
+void MainWindow::checkRecognizerButton() {
+    emit recognizerButtonEnabledChanged(!_preprocessing && _activeItemsAvailable);
 }
 
 void MainWindow::recognizerLaunchedChanged(bool v) {

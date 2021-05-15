@@ -10,6 +10,7 @@
 #include "patterns/patternservice.h"
 #include "patternwindow.h"
 #include "cython/recognizer.h"
+#include "cython/preprocessor.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -32,17 +33,31 @@ public:
     bool inactiveItemSelected() const;
     void setInactiveItemSelected(bool v);
 
+    bool preprocessing() const;
+    void setPreprocessing(bool v);
+
+    bool activeItemsAvailable() const;
+    void setActiveItemsAvailable(bool v);
+
+    bool recognizing() const;
+    void setRecognizing(bool v);
+
 signals:
     void itemSelectedChanged();
     void inactiveItemSelectedChanged();
     void activeItemSelectedChanged();
+    void activeItemsAvailableChanged();
+    void preprocessingChanged();
+    void recognizingChanged();
 
     void toInactiveButtonEnabledChanged(bool);
     void toActiveButtonEnabledChanged(bool);
     void editButtonEnabledChanged(bool);
+    void recognizerButtonEnabledChanged(bool);
 
 public slots:
     void driverActionOccurred(bool actionType);
+    void preprocessingDone();
 
 private slots:
     void on_addPatternButton_clicked();
@@ -58,10 +73,12 @@ private slots:
     void checkInactiveButton();
     void checkActiveButton();
     void checkEditButton();
+    void checkRecognizerButton();
     void recognizerLaunchedChanged(bool v);
 
     void updatePatterns();
     void addPattern(PatternModel *model);
+    void deletePattern(PatternModel *model);
 
 private:
     Ui::MainWindow *ui;
@@ -69,11 +86,12 @@ private:
     QVector<QMetaObject::Connection> patternWindowConnections;
 
     Recognizer *recognizer;
-    PatternService patternService {};
+    Preprocessor *preprocessor;
 
     QVector<PatternModel> patterns;
     PatternModel falsePattern {};
 
+    void launchPreprocessor();
     void movePattern(QListWidget *from, QListWidget *to, bool toActive);
     void openPatternWindow(PatternModel *model, const std::function<void(PatternModel*)>& acceptedCallback);
 
@@ -82,6 +100,9 @@ private:
     bool _inactiveItemSelected = false;
     bool _activeItemSelected = false;
     bool _itemSelected = false;
+    bool _preprocessing = false;
+    bool _activeItemsAvailable = false;
+    bool _recognizing = false;
 };
 
 #endif // MAINWINDOW_H

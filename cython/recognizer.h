@@ -17,15 +17,12 @@
 class recognizer : public Worker {
 Q_OBJECT
 protected:
-    static const char* IPC_ENDPOINT;
-    static const char* DONE_ENDPOINT;
-
     void run() override;
     void loop() override;
 
     zmqpp::context ctx {};
-    zmqpp::socket socket {ctx, zmqpp::socket_type::sub};
-    zmqpp::socket doneSocket {ctx, zmqpp::socket_type::pub};
+    zmqpp::socket dataSocket {ctx, zmqpp::socket_type::sub};
+    zmqpp::socket commandSocket {ctx, zmqpp::socket_type::pub};
 };
 
 class Recognizer : public QObject {

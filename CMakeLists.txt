@@ -40,7 +40,7 @@ set(PROJECT_SOURCES
         ui/patternwindow.ui
         cython/recognizer.cpp
         cython/recognizer.h
-        misc/worker.h)
+        misc/worker.h cython/preprocessor.cpp cython/preprocessor.h config/config.cpp config/config.h)
 
 add_executable(TwitFilC ${PROJECT_SOURCES})
 

@@ -362,10 +362,27 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>MainWindow</sender>
+   <signal>recognizerButtonEnabledChanged(bool)</signal>
+   <receiver>toggleRecognizerButton</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>399</x>
+     <y>334</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>593</x>
+     <y>330</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <signal>toInactiveButtonEnabledChanged(bool)</signal>
   <signal>toActiveButtonEnabledChanged(bool)</signal>
   <signal>editButtonEnabledChanged(bool)</signal>
+  <signal>recognizerButtonEnabledChanged(bool)</signal>
  </slots>
 </ui>

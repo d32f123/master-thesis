@@ -1,16 +1,11 @@
 #include "recognizer.h"
 
-#include <QtConcurrent>
 #include <QProcess>
 
-#define PY_SSIZE_T_CLEAN
-
-#include <Python/Python.h>
+#include "patterns/patternservice.h"
+#include "config/config.h"
 
 Recognizer::Recognizer(QObject *parent) : QObject(parent) {}
-
-const char *recognizer::IPC_ENDPOINT = "ipc://recogsock";
-const char *recognizer::DONE_ENDPOINT = "ipc://recogsockdone";
 
 void Recognizer::launch(const QVector<PatternModel> &patterns) {
     this->_recognizer = std::make_unique<recognizer>();
@@ -45,15 +40,18 @@ void Recognizer::recognizerDone() {
 
 void recognizer::run() {
     qInfo("Recognizer starting");
-    socket.subscribe("");
-    socket.set(zmqpp::socket_option::receive_timeout, 1000);
-    socket.bind(IPC_ENDPOINT);
+    dataSocket.subscribe("");
+    dataSocket.set(zmqpp::socket_option::receive_timeout, 1000);
+    dataSocket.bind(config::TWITRECOG_DATA_ENDPOINT);
 
-    doneSocket.bind(DONE_ENDPOINT);
+    commandSocket.bind(config::TWITRECOG_COMMAND_ENDPOINT);
 
     qInfo("Launching python");
     QProcess python_process{};
-    python_process.start("python3", {"twitrecog.py"});
+    python_process.start("python3", {
+        config::getTwitRecogFilePath(),
+        config::getRootDirectory().absolutePath()
+    });
 
     if (python_process.state() == QProcess::ProcessState::NotRunning ||
         python_process.error() == QProcess::ProcessError::FailedToStart) {
@@ -67,19 +65,19 @@ void recognizer::run() {
     qInfo("Recognizer loop");
     Worker::run();
     qInfo("Recognizer exiting");
-    doneSocket.send("done");
+    commandSocket.send("done");
     python_process.waitForFinished();
     QByteArray std_out = python_process.readAll();
     qWarning("Std out: %s", std_out.data());
-    socket.close();
-    doneSocket.close();
+    dataSocket.close();
+    commandSocket.close();
 
     emit done();
 }
 
 void recognizer::loop() {
     zmqpp::message message;
-    auto received = socket.receive(message);
+    auto received = dataSocket.receive(message);
 
     if (received) {
         std::string text;

@@ -5,35 +5,22 @@
 #include <QDir>
 #include <QStandardPaths>
 
-const QString PatternService::PATTERNS_DIRECTORY = "patterns";
-const QString PatternService::PATTERN_PATH_SUFFIX = "_pattern";
-const QString PatternService::FALSE_PATTERN_NAME = "false";
-const QString PatternService::RECORDING_FILE_EXTENSION = ".raw";
-const QString PatternService::ACTIVE_FILE_NAME = "active.txt";
-const QString PatternService::MODELS_DIRECTORY = "model";
-
-PatternService::PatternService() {
-    QDir dir = PatternService::getRootDirectory();
-    if (!dir.exists()) {
-        dir.mkpath(dir.absolutePath());
-    }
-    if (!dir.exists(PATTERNS_DIRECTORY)) {
-        dir.mkdir(PATTERNS_DIRECTORY);
-    }
-    dir.cd(PATTERNS_DIRECTORY);
-    qInfo("Directory path: %s", qUtf8Printable(dir.absolutePath()));
-    this->patterns_directory = dir;
-}
+#include "config/config.h"
 
 void PatternService::addPattern(const PatternModel &pattern) {
-    auto patterns = this->getPatterns();
+    auto patterns = getPatterns();
     patterns.push_back(pattern);
     PatternService::savePatterns(patterns);
 }
 
+void PatternService::deletePattern(const PatternModel &pattern) {
+    config::getModelsDirectory().rmdir(pattern.name());
+    config::getPatternsDirectory().rmdir(pattern.name());
+}
+
 void PatternService::savePattern(const PatternModel &pattern) {
     auto pattern_dir_path = PatternService::patternPathFromName(pattern.name());
-    auto dir = patterns_directory;
+    auto dir = config::getPatternsDirectory();
 
     if (!dir.exists(pattern_dir_path)) {
         dir.mkdir(pattern_dir_path);
@@ -41,7 +28,7 @@ void PatternService::savePattern(const PatternModel &pattern) {
     dir.cd(pattern_dir_path);
 
     {
-        QFile active_file{dir.filePath(ACTIVE_FILE_NAME)};
+        QFile active_file{dir.filePath(config::ACTIVE_FILE_NAME)};
         if (!active_file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
             qWarning("Couldn't open active_file for writing");
             return;
@@ -61,11 +48,11 @@ void PatternService::savePattern(const PatternModel &pattern) {
 }
 
 void PatternService::savePatterns(const QVector<PatternModel> &patterns) {
-    for (auto&& pattern : patterns) savePattern(pattern);
+    for (auto &&pattern : patterns) savePattern(pattern);
 }
 
 std::optional<PatternModel> PatternService::getPattern(const QString &pattern_dir) {
-    auto dir = patterns_directory;
+    auto dir = config::getPatternsDirectory();
 
     PatternModel model;
     model.setName(PatternService::patternNameFromPath(pattern_dir));
@@ -73,7 +60,7 @@ std::optional<PatternModel> PatternService::getPattern(const QString &pattern_di
 
     dir.cd(pattern_dir);
     {
-        QFile active_file{dir.filePath(ACTIVE_FILE_NAME)};
+        QFile active_file{dir.filePath(config::ACTIVE_FILE_NAME)};
         if (!active_file.open(QIODevice::ReadOnly)) {
             qWarning("Couldn't open active_file for reading");
             return {};
@@ -82,10 +69,12 @@ std::optional<PatternModel> PatternService::getPattern(const QString &pattern_di
         model.setActive(is_active == "true");
     }
 
-    auto recordings_paths = dir.entryList(QStringList("*" + RECORDING_FILE_EXTENSION), QDir::Files, QDir::Name);
+    auto recordings_paths = dir.entryList(
+            {QString{"*"} + config::RECORDING_FILE_EXTENSION}, QDir::Files, QDir::Name
+    );
     QVector<QByteArray> recordings;
     recordings.resize(recordings_paths.size());
-    for (auto&& recording_path : recordings_paths) {
+    for (auto &&recording_path : recordings_paths) {
         auto path = dir.filePath(recording_path);
         auto idx = PatternService::recordingIdxFromPath(recording_path);
 
@@ -102,12 +91,12 @@ std::optional<PatternModel> PatternService::getPattern(const QString &pattern_di
 }
 
 QVector<PatternModel> PatternService::getPatterns() {
-    auto dir = patterns_directory;
+    auto dir = config::getPatternsDirectory();
     auto patterns_dirs = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
-    patterns_dirs.removeOne(PatternService::patternPathFromName(FALSE_PATTERN_NAME));
+    patterns_dirs.removeOne(PatternService::patternPathFromName(config::FALSE_PATTERN_NAME));
 
     QVector<PatternModel> ret{};
-    for (auto&& pattern_dir_name : patterns_dirs) {
+    for (auto &&pattern_dir_name : patterns_dirs) {
         qInfo("Loading pattern %s", qUtf8Printable(pattern_dir_name));
         auto pattern = getPattern(pattern_dir_name);
         if (!pattern) {
@@ -121,33 +110,27 @@ QVector<PatternModel> PatternService::getPatterns() {
 }
 
 QString PatternService::patternPathFromName(const QString &pattern) {
-    return pattern + PATTERN_PATH_SUFFIX;
+    return pattern + config::PATTERN_PATH_SUFFIX;
 }
 
 QString PatternService::recordingPathFromIdx(int idx) {
     auto idx_str = std::to_string(idx);
-    return QString(idx_str.c_str()) + RECORDING_FILE_EXTENSION;
-}
-
-QString PatternService::getRootDirectory() {
-    auto root_directory_path = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
-    if (root_directory_path.isEmpty()) root_directory_path = ".";
-    return root_directory_path;
+    return QString(idx_str.c_str()) + config::RECORDING_FILE_EXTENSION;
 }
 
 QString PatternService::patternNameFromPath(const QString &pattern_path) {
-    return pattern_path.section(PATTERN_PATH_SUFFIX, 0, 0);
+    return pattern_path.section(config::PATTERN_PATH_SUFFIX, 0, 0);
 }
 
 int PatternService::recordingIdxFromPath(const QString &recording_path) {
-    return recording_path.section(RECORDING_FILE_EXTENSION, 0, 0).toInt();
+    return recording_path.section(config::RECORDING_FILE_EXTENSION, 0, 0).toInt();
 }
 
 PatternModel PatternService::getFalsePattern() {
-    if (auto pattern = getPattern(PatternService::patternPathFromName(FALSE_PATTERN_NAME)); pattern) {
+    if (auto pattern = getPattern(PatternService::patternPathFromName(config::FALSE_PATTERN_NAME)); pattern) {
         return pattern.value();
     }
-    return {FALSE_PATTERN_NAME, true, {}};
+    return {config::FALSE_PATTERN_NAME, true, {}};
 }
 
 void PatternService::saveFalsePattern(const PatternModel &pattern) {
