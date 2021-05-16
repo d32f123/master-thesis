@@ -1,7 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <functional>
+#include <utility>
 
 #include <QMainWindow>
 #include <QStringList>
@@ -33,9 +33,6 @@ public:
     [[nodiscard]] bool inactiveItemSelected() const;
     void setInactiveItemSelected(bool v);
 
-    [[nodiscard]] bool preprocessing() const;
-    void setPreprocessing(bool v);
-
     [[nodiscard]] bool activeItemsAvailable() const;
     void setActiveItemsAvailable(bool v);
 
@@ -47,7 +44,6 @@ signals:
     void inactiveItemSelectedChanged();
     void activeItemSelectedChanged();
     void activeItemsAvailableChanged();
-    void preprocessingChanged();
     void recognizingChanged();
 
     void toInactiveButtonEnabledChanged(bool);
@@ -57,7 +53,6 @@ signals:
 
 public slots:
     void driverActionOccurred(bool actionType);
-    void preprocessingDone();
 
 private slots:
     void on_addPatternButton_clicked();
@@ -74,24 +69,20 @@ private slots:
     void checkActiveButton();
     void checkEditButton();
     void checkRecognizerButton();
-    void recognizerLaunchedChanged(bool v);
+    void onRecognizingChanged(bool v);
 
     void updatePatterns();
-    void addPattern(PatternModel *model);
-    void deletePattern(PatternModel *model);
 
 private:
     Ui::MainWindow *ui;
     PatternWindow *patternWindow {nullptr};
     QVector<QMetaObject::Connection> patternWindowConnections;
 
-    Recognizer *recognizer;
-    Preprocessor *preprocessor;
+    std::unique_ptr<Recognizer> recognizer;
 
     QVector<PatternModel> patterns;
     PatternModel falsePattern {};
 
-    void launchPreprocessor();
     void movePattern(QListWidget *from, QListWidget *to, bool toActive);
     void openPatternWindow(PatternModel *model, const std::function<void(PatternModel*)>& acceptedCallback);
 
@@ -100,7 +91,6 @@ private:
     bool _inactiveItemSelected = false;
     bool _activeItemSelected = false;
     bool _itemSelected = false;
-    bool _preprocessing = false;
     bool _activeItemsAvailable = false;
     bool _recognizing = false;
 };

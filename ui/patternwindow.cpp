@@ -4,33 +4,32 @@
 #include <QtMultimedia/QAudioOutput>
 
 #include "io/iodevicerecorder.h"
+#include "patterns/patternservice.h"
 
 PatternWindow::PatternWindow(PatternModel *model, QWidget *parent) :
         QDialog(parent, Qt::Dialog),
         ui(new Ui::PatternWindow),
-        recorder(new IODeviceRecorder(QAudioDeviceInfo::defaultInputDevice())),
+        recorder(std::make_unique<IODeviceRecorder>(QAudioDeviceInfo::defaultInputDevice(), this)),
+        preprocessor(std::make_unique<Preprocessor>(this)),
         model(model) {
     ui->setupUi(this);
-
-    setEditMode(model);
-    if (!model) {
-        this->model = model = new PatternModel();
-    }
-
     ui->ioPlotter->initialize(QAudioDeviceInfo::defaultInputDevice());
-    ui->patternNameField->setText(model->name());
 
-    QListWidgetItem* first = nullptr;
-    for (auto&& recording : model->recordings()) {
-        auto item = add_recording(recording);
-        if (first == nullptr) first = item;
-    }
-    if (first) ui->recordingsListWidget->setCurrentItem(first);
+    connect(ui->createButton, &QPushButton::clicked, this, &PatternWindow::onCreateButtonClicked);
+    connect(ui->cancelButton, &QPushButton::clicked, this, &PatternWindow::onCancelButtonClicked);
+    connect(ui->toggleRecordingButton, &QPushButton::clicked, this, &PatternWindow::onToggleRecordingButtonClicked);
+    connect(ui->playRecordingButton, &QPushButton::clicked, this, &PatternWindow::onPlayRecordingButtonClicked);
+    connect(ui->deleteRecordingButton, &QPushButton::clicked, this, &PatternWindow::onDeleteRecordingButtonClicked);
+    connect(ui->patternNameField, &QLineEdit::textChanged, this, &PatternWindow::onPatternNameFieldTextChanged);
+    connect(ui->recordingsListWidget, &QListWidget::itemSelectionChanged, this, &PatternWindow::onRecordingsListWidgetItemSelectionChanged);
 
     connect(this, &PatternWindow::recordingChanged, this, &PatternWindow::checkPlayButton);
     connect(this, &PatternWindow::recordingChanged, this, &PatternWindow::checkDeleteButton);
     connect(this, &PatternWindow::recordingChanged, this, &PatternWindow::checkCreateButton);
     connect(this, &PatternWindow::recordingChanged, this, &PatternWindow::checkCancelButton);
+    connect(this, &PatternWindow::recordingChanged, this, &PatternWindow::onRecordingChanged);
+
+    connect(this, &PatternWindow::editModeChanged, this, &PatternWindow::onEditModeChanged);
 
     connect(this, &PatternWindow::recordingSelectedChanged, this, &PatternWindow::checkPlayButton);
     connect(this, &PatternWindow::recordingSelectedChanged, this, &PatternWindow::checkDeleteButton);
@@ -44,6 +43,38 @@ PatternWindow::PatternWindow(PatternModel *model, QWidget *parent) :
     connect(this, &PatternWindow::nameValidChanged, this, &PatternWindow::checkCreateButton);
 
     connect(this, &PatternWindow::enoughRecordingsChanged, this, &PatternWindow::checkCreateButton);
+
+    connect(this, &PatternWindow::dirtyChanged, this, &PatternWindow::checkCancelButton);
+    connect(this, &PatternWindow::dirtyChanged, this, &PatternWindow::onDirtyChanged);
+
+    connect(this, &PatternWindow::renamedChanged, this, &PatternWindow::onDirtyChanged);
+
+    connect(this, &PatternWindow::savingChanged, this, &PatternWindow::checkCancelButton);
+    connect(this, &PatternWindow::savingChanged, this, &PatternWindow::checkCreateButton);
+    connect(this, &PatternWindow::savingChanged, this, &PatternWindow::checkDeleteButton);
+    connect(this, &PatternWindow::savingChanged, this, &PatternWindow::checkPlayButton);
+    connect(this, &PatternWindow::savingChanged, this, &PatternWindow::checkToggleButton);
+
+    connect(this, &PatternWindow::savedChanged, this, &PatternWindow::checkCancelButton);
+
+    connect(&*preprocessor, &Preprocessor::finished, this, &PatternWindow::onPreprocessingDone, Qt::QueuedConnection);
+
+    setEditMode(model);
+    if (!model) {
+        this->model = model = new PatternModel();
+    }
+    ui->patternNameField->setText(model->name());
+
+    QListWidgetItem* first = nullptr;
+    for (auto&& recording : model->recordings()) {
+        auto item = add_recording(recording);
+        if (first == nullptr) first = item;
+    }
+    if (first) ui->recordingsListWidget->setCurrentItem(first);
+
+    checkNameValid(model->name());
+    checkEnoughRecordings();
+    setDirty(false);
 }
 
 PatternWindow::~PatternWindow() {
@@ -72,6 +103,22 @@ bool PatternWindow::nameValid() const {
 
 bool PatternWindow::enoughRecordings() const {
     return isEnoughRecordings;
+}
+
+bool PatternWindow::dirty() const {
+    return isDirty;
+}
+
+bool PatternWindow::renamed() const {
+    return isRenamed;
+}
+
+bool PatternWindow::saving() const {
+    return isSaving;
+}
+
+bool PatternWindow::saved() const {
+    return isSaved;
 }
 
 PatternModel *PatternWindow::patternModel() const {
@@ -108,27 +155,50 @@ void PatternWindow::setEnoughRecordings(bool v) {
     emit enoughRecordingsChanged();
 }
 
-void PatternWindow::setSelectedRecording(QByteArray *v) {
+void PatternWindow::setDirty(bool v) {
+    isDirty = v;
+    emit dirtyChanged();
+}
+
+void PatternWindow::setRenamed(bool v) {
+    isRenamed = v;
+    emit renamedChanged();
+}
+
+void PatternWindow::setSaving(bool v) {
+    isSaving = v;
+    emit savingChanged();
+}
+
+void PatternWindow::setSaved(bool v) {
+    isSaved = v;
+    emit savedChanged();
+}
+
+void PatternWindow::setSelectedRecording(PatternRecording *v) {
     _selectedRecording = v;
-    ui->ioPlotter->setAudio(v ? *v : QByteArray());
-    recorder->set(v ? *v : QByteArray());
+    ui->ioPlotter->setAudio(v ? v->bytes : QByteArray());
+    recorder->set(v ? v->bytes : QByteArray());
 }
 
-void PatternWindow::on_createButton_clicked() {
-    model->setName(ui->patternNameField->text());
-    model->setRecordings(std::move(_recordings));
-    accept();
+void PatternWindow::onCreateButtonClicked() {
+    if (!dirty() && !renamed()) {
+        accept();
+    } else {
+        save();
+    }
 }
 
-void PatternWindow::on_cancelButton_clicked() {
+void PatternWindow::onCancelButtonClicked() {
     reject();
 }
 
-void PatternWindow::on_patternNameField_textChanged(const QString &s) {
-    setNameValid(!s.isEmpty());
+void PatternWindow::onPatternNameFieldTextChanged(const QString &arg1) {
+    checkNameValid(arg1);
+    setRenamed(true);
 }
 
-QListWidgetItem* PatternWindow::add_recording(const QByteArray &recording) {
+QListWidgetItem* PatternWindow::add_recording(const PatternRecording &recording) {
     _recordings.push_back(recording);
     int idx = _recordings.size() - 1;
 
@@ -141,8 +211,8 @@ QListWidgetItem* PatternWindow::add_recording(const QByteArray &recording) {
     return item;
 }
 
-void PatternWindow::on_toggleRecordingButton_clicked() {
-    if (!isRecording) {
+void PatternWindow::onToggleRecordingButtonClicked() {
+    if (!recording()) {
         recorder->set(QByteArray());
         recorder->start();
         ui->ioPlotter->start();
@@ -152,17 +222,26 @@ void PatternWindow::on_toggleRecordingButton_clicked() {
         ui->ioPlotter->stop();
         setRecording(false);
 
-        auto item = add_recording(recorder->buf->buffer());
+        auto item = add_recording({.bytes = recorder->buf->buffer()});
         ui->recordingsListWidget->setCurrentItem(item);
 
-        bool enoughRecordings = _recordings.size() >= PatternWindow::MIN_RECORDINGS_COUNT;
-        if (enoughRecordings != this->enoughRecordings()) {
-            setEnoughRecordings(enoughRecordings);
-        }
+        checkEnoughRecordings();
+        setDirty(true);
     }
 }
 
-void PatternWindow::on_deleteRecordingButton_clicked() {
+void PatternWindow::checkEnoughRecordings() {
+    bool enoughRecordings = _recordings.size() >= PatternWindow::MIN_RECORDINGS_COUNT;
+    if (enoughRecordings != this->enoughRecordings()) {
+        setEnoughRecordings(enoughRecordings);
+    }
+}
+
+void PatternWindow::checkNameValid(const QString& s) {
+    setNameValid(!s.isEmpty());
+}
+
+void PatternWindow::onDeleteRecordingButtonClicked() {
     auto item = ui->recordingsListWidget->selectedItems().first();
     auto idx = item->data(Qt::UserRole).toInt();
     for (auto i = idx + 1; i < ui->recordingsListWidget->count(); ++i) {
@@ -172,13 +251,11 @@ void PatternWindow::on_deleteRecordingButton_clicked() {
     _recordings.removeAt(idx);
     delete item;
 
-    bool enoughRecordings = _recordings.size() >= PatternWindow::MIN_RECORDINGS_COUNT;
-    if (enoughRecordings != this->enoughRecordings()) {
-        setEnoughRecordings(enoughRecordings);
-    }
+    checkEnoughRecordings();
+    setDirty(true);
 }
 
-void PatternWindow::on_playRecordingButton_clicked() {
+void PatternWindow::onPlayRecordingButtonClicked() {
     QAudioDeviceInfo audioInfo = QAudioDeviceInfo::defaultOutputDevice();
     QAudioFormat format = IODeviceRecorder::defaultFormat();
     if (!audioInfo.isFormatSupported(format)) {
@@ -186,12 +263,11 @@ void PatternWindow::on_playRecordingButton_clicked() {
         return;
     }
 
-    audioOutput = new QAudioOutput(format, this);
-    connect(audioOutput, &QAudioOutput::stateChanged, this, [this](QAudio::State state) -> void {
+    auto *audioOutput = new QAudioOutput(format, this);
+    connect(audioOutput, &QAudioOutput::stateChanged, this, [this, audioOutput](QAudio::State state) -> void {
         switch (state) {
             case QAudio::IdleState:
                 audioOutput->stop();
-                delete audioOutput;
                 setPlayback(false);
                 break;
             case QAudio::StoppedState:
@@ -199,6 +275,7 @@ void PatternWindow::on_playRecordingButton_clicked() {
                     qWarning("Error during playback: %d", audioOutput->error());
                 }
                 setPlayback(false);
+                audioOutput->deleteLater();
                 break;
             default:
                 break;
@@ -209,23 +286,17 @@ void PatternWindow::on_playRecordingButton_clicked() {
     setPlayback(true);
 }
 
-void PatternWindow::on_PatternWindow_editModeChanged() {
-    if (isEditMode) {
-        this->setWindowTitle("Edit Pattern");
-        this->ui->newPatternLabel->setText("Edit an existing Pattern");
-        this->ui->createButton->setText("Save Pattern");
-    } else {
-        this->setWindowTitle("Create Pattern");
-        this->ui->newPatternLabel->setText("Create a new Pattern");
-        this->ui->createButton->setText("Create Pattern");
-    }
+void PatternWindow::onEditModeChanged() {
+    this->setWindowTitle(getTitle());
+    this->ui->newPatternLabel->setText(getLabelText());
+    this->ui->createButton->setText(getCreateButtonText());
 }
 
-void PatternWindow::on_PatternWindow_recordingChanged() {
-    this->ui->toggleRecordingButton->setText(isRecording ? "Stop Recording" : "Start Recording");
+void PatternWindow::onRecordingChanged() {
+    this->ui->toggleRecordingButton->setText(recording() ? "Stop Recording" : "Start Recording");
 }
 
-void PatternWindow::on_recordingsListWidget_itemSelectionChanged() {
+void PatternWindow::onRecordingsListWidgetItemSelectionChanged() {
     bool isSelected = !this->ui->recordingsListWidget->selectedItems().empty();
     if (isSelected) {
         auto& selectedItem = this->ui->recordingsListWidget->selectedItems().first();
@@ -237,25 +308,76 @@ void PatternWindow::on_recordingsListWidget_itemSelectionChanged() {
     setRecordingSelected(isSelected);
 }
 
+QString PatternWindow::getTitle() const {
+    return editMode() ? "Edit Pattern" : "Create Pattern";
+}
+
+QString PatternWindow::getCreateButtonText() const {
+    return !dirty() && !renamed()
+         ? "Close"
+         : editMode()
+         ? "Save Pattern"
+         : "Create Pattern";
+}
+
+QString PatternWindow::getLabelText() const {
+    return editMode() ? "Edit an existing Pattern" : "Create a new Pattern";
+}
+
+void PatternWindow::onDirtyChanged() {
+    this->ui->createButton->setText(getCreateButtonText());
+}
+
+void PatternWindow::onPreprocessingDone() {
+    PatternService::updatePattern(*model);
+    _recordings = model->recordings();
+    setDirty(false);
+    setRenamed(false);
+    setSaving(false);
+    setSaved(true);
+}
+
+void PatternWindow::save() {
+    if (!dirty() && !renamed()) return;
+
+    auto new_name = ui->patternNameField->text();
+    if (renamed() && editMode()) {
+        PatternService::renamePattern(*model, new_name);
+        setRenamed(false);
+    }
+    if (!dirty()) {
+        setSaved(true);
+        return;
+    }
+
+    setSaving(true);
+    model->setRecordings(std::move(_recordings));
+    PatternService::savePattern(*model);
+    preprocessor->patternName = new_name;
+    preprocessor->start();
+}
+
 void PatternWindow::checkPlayButton() {
-    bool enabled = !isRecording && isRecordingSelected && !isPlayback;
+    bool enabled = !recording() && recordingSelected() && !playback() && !saving();
     emit playButtonEnabledChanged(enabled);
 }
+
 void PatternWindow::checkDeleteButton() {
-    bool enabled = !isRecording && isRecordingSelected && !isPlayback;
+    bool enabled = !recording() && recordingSelected() && !playback() && !saving();
     emit deleteButtonEnabledChanged(enabled);
 }
+
 void PatternWindow::checkToggleButton() {
-    bool enabled = !isPlayback;
+    bool enabled = !playback() && !saving();
     emit toggleButtonEnabledChanged(enabled);
 }
+
 void PatternWindow::checkCreateButton() {
-    bool enabled = isNameValid && isEnoughRecordings && !isPlayback && !isRecording;
+    bool enabled = nameValid() && enoughRecordings() && !playback() && !recording() && !saving();
     emit createButtonEnabledChanged(enabled);
 }
 
 void PatternWindow::checkCancelButton() {
-    bool enabled = !isPlayback && !isRecording;
+    bool enabled = !playback() && !recording() && !saved() && !saving();
     emit cancelButtonEnabledChanged(enabled);
 }
-

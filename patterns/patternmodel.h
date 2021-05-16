@@ -4,31 +4,37 @@
 #include <QObject>
 #include <QString>
 #include <QVector>
+#include <QByteArray>
+
+struct PatternRecording {
+    QByteArray bytes {};
+    int order {-1};
+};
 
 class PatternModel {
 Q_GADGET;
 public:
     PatternModel();
 
-    PatternModel(const QString &name, bool active, QVector<QByteArray> &&bytes);
+    PatternModel(QString name, bool active, QVector<PatternRecording> &&recordings);
 
-    QString name() const;
+    [[nodiscard]] QString name() const;
 
     void setName(const QString &name);
 
-    bool active() const;
+    [[nodiscard]] bool active() const;
 
     void setActive(bool active);
 
-    QVector<QByteArray>& recordings();
-    const QVector<QByteArray>& recordings() const;
+    QVector<PatternRecording>& recordings();
+    [[nodiscard]] const QVector<PatternRecording>& recordings() const;
 
-    void setRecordings(QVector<QByteArray> &&bytes);
+    void setRecordings(QVector<PatternRecording> &&recordings);
 
 private:
     QString _name;
     bool _active;
-    QVector<QByteArray> _recordings;
+    QVector<PatternRecording> _recordings;
 };
 
 #endif // PATTERNMODEL_H

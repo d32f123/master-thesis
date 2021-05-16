@@ -11,6 +11,8 @@ const char *config::TWITRECOG_FILE_NAME = "twitrecog.py";
 const char *config::PATTERN_PATH_SUFFIX = "_pattern";
 const char *config::FALSE_PATTERN_NAME = "false";
 const char *config::RECORDING_FILE_EXTENSION = ".raw";
+const char *config::MODEL_FILE_EXTENSION = ".npy";
+const char *config::MODEL_FILE_GLOB = "*.npy";
 const char *config::RECORDING_FILE_GLOB = "*.raw";
 const char *config::ACTIVE_FILE_NAME = "active.txt";
 const char *config::TWITRECOG_DATA_ENDPOINT = "ipc://twitrecog_data";
@@ -31,7 +33,6 @@ QDir config::getRootDirectory() {
 QDir config::getPythonDirectory() {
     auto dir = QDir::current();
     dir.cd(PYTHON_DIR_NAME);
-    qInfo("python dir: %s", qUtf8Printable(dir.absolutePath()));
     if (!dir.exists()) {
         dir.mkpath(dir.absolutePath());
     }

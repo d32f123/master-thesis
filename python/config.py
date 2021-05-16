@@ -1,8 +1,8 @@
 channels = 1
 sr = 22050
 input_dim = 60
-dtw_cost = 'euclidean'
-dtw_k = 1.1
+dtw_cost = 'cosine'
+dtw_k = 1.05
 
 patterns_rel_path = "patterns"
 models_rel_path = "model"

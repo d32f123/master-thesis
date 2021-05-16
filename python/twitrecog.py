@@ -183,6 +183,7 @@ def main():
 
     signal.signal(signal.SIGINT, signal_cb)
     print('started')
+    socket.send_string('started')
     while not signal_received:
         try:
             string = done.recv_string()

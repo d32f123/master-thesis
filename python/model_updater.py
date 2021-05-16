@@ -37,7 +37,11 @@ def main():
             recording_name = recording_path[recording_path.rindex('/') + 1:].replace(recording_extension, '')
             out_recording_path = os.path.join(model_path, recording_name + model_extension)
             preprocessed_recording_path = os.path.join(preprocessed_path, recording_name + recording_extension)
-            preprocess(recording_path, preprocessed_recording_path)
+            try:
+                preprocess(recording_path, preprocessed_recording_path)
+            except ValueError as err:
+                print('error while preprocessing', err)
+                continue
 
             with open(preprocessed_recording_path, mode='rb') as preprocessed_file:
                 recording_bytes = np.frombuffer(preprocessed_file.read(), dtype=np.float32)

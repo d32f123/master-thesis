@@ -10,7 +10,7 @@
 class IODeviceRecorder : public QObject {
 Q_OBJECT
 public:
-    IODeviceRecorder(const QAudioDeviceInfo &deviceInfo);
+    explicit IODeviceRecorder(const QAudioDeviceInfo &deviceInfo, QObject* parent = nullptr);
 
     QBuffer *buf;
 
@@ -18,9 +18,9 @@ public:
 
     void stop();
 
-    void set(const QByteArray &arr, QIODevice::OpenMode mode = QIODevice::ReadWrite);
+    void set(const QByteArray &arr, QIODevice::OpenMode mode = QIODevice::ReadWrite) const;
 
-    void resetRead();
+    void resetRead() const;
 
     static QAudioFormat defaultFormat();
 

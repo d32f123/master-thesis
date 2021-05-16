@@ -1,14 +1,12 @@
 #include "patternmodel.h"
 
+#include <utility>
+
 PatternModel::PatternModel()
-        : _name(), _active(false), _recordings() {
+        : _name(), _active(false), _recordings() {}
 
-}
-
-PatternModel::PatternModel(const QString &name, bool active, QVector<QByteArray> &&recordings)
-        : _name(name), _active(active), _recordings(std::move(recordings)) {
-
-}
+PatternModel::PatternModel(QString name, bool active, QVector<PatternRecording> &&recordings)
+        : _name(std::move(name)), _active(active), _recordings(std::move(recordings)) {}
 
 void PatternModel::setName(const QString &name) {
     this->_name = name;
@@ -18,7 +16,7 @@ void PatternModel::setActive(bool active) {
     this->_active = active;
 }
 
-void PatternModel::setRecordings(QVector<QByteArray> &&recordings) {
+void PatternModel::setRecordings(QVector<PatternRecording> &&recordings) {
     this->_recordings = recordings;
 }
 
@@ -30,10 +28,10 @@ bool PatternModel::active() const {
     return this->_active;
 }
 
-QVector<QByteArray>& PatternModel::recordings() {
+QVector<PatternRecording>& PatternModel::recordings() {
     return this->_recordings;
 }
 
-const QVector<QByteArray>& PatternModel::recordings() const {
+const QVector<PatternRecording>& PatternModel::recordings() const {
     return this->_recordings;
 }

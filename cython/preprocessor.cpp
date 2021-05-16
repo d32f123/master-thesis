@@ -10,7 +10,7 @@ void Preprocessor::run() {
             config::getRootDirectory().absolutePath()
     };
     if (this->patternName) arguments.push_back(this->patternName.value());
-    qInfo("Launching preprocessor");
+    qInfo("Launching preprocessor %s", qUtf8Printable(arguments.last()));
     python_process.start("python3", arguments);
 
     if (python_process.state() == QProcess::ProcessState::NotRunning ||

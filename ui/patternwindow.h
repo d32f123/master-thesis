@@ -1,12 +1,15 @@
 #ifndef PATTERNWINDOW_H
 #define PATTERNWINDOW_H
 
+#include <utility>
+
 #include <QDialog>
 #include <QListWidgetItem>
 #include <QtMultimedia/QAudioOutput>
 
 #include "patterns/patternmodel.h"
 #include "io/iodevicerecorder.h"
+#include "cython/preprocessor.h"
 
 namespace Ui {
     class PatternWindow;
@@ -20,14 +23,18 @@ public:
 
     ~PatternWindow() override;
 
-    bool recording() const;
-    bool recordingSelected() const;
-    bool playback() const;
-    bool editMode() const;
-    bool nameValid() const;
-    bool enoughRecordings() const;
+    [[nodiscard]] bool recording() const;
+    [[nodiscard]] bool recordingSelected() const;
+    [[nodiscard]] bool playback() const;
+    [[nodiscard]] bool editMode() const;
+    [[nodiscard]] bool nameValid() const;
+    [[nodiscard]] bool enoughRecordings() const;
+    [[nodiscard]] bool dirty() const;
+    [[nodiscard]] bool renamed() const;
+    [[nodiscard]] bool saving() const;
+    [[nodiscard]] bool saved() const;
 
-    PatternModel *patternModel() const;
+    [[nodiscard]] PatternModel *patternModel() const;
 
     void setRecording(bool v);
     void setRecordingSelected(bool v);
@@ -35,24 +42,33 @@ public:
     void setEditMode(bool v);
     void setNameValid(bool v);
     void setEnoughRecordings(bool v);
-    void setSelectedRecording(QByteArray* v);
+    void setSelectedRecording(PatternRecording* v);
+    void setDirty(bool v);
+    void setRenamed(bool v);
+    void setSaving(bool v);
+    void setSaved(bool v);
+
+public slots:
+    void onPreprocessingDone();
 
 private slots:
-    void on_createButton_clicked();
-    void on_cancelButton_clicked();
-    void on_patternNameField_textChanged(const QString &arg1);
-    void on_toggleRecordingButton_clicked();
-    void on_playRecordingButton_clicked();
-    void on_PatternWindow_editModeChanged();
-    void on_PatternWindow_recordingChanged();
-    void on_recordingsListWidget_itemSelectionChanged();
-    void on_deleteRecordingButton_clicked();
+    void onCreateButtonClicked();
+    void onCancelButtonClicked();
+    void onToggleRecordingButtonClicked();
+    void onPlayRecordingButtonClicked();
+    void onDeleteRecordingButtonClicked();
+    void onPatternNameFieldTextChanged(const QString &arg1);
+    void onRecordingsListWidgetItemSelectionChanged();
 
     void checkPlayButton();
     void checkDeleteButton();
     void checkToggleButton();
     void checkCreateButton();
     void checkCancelButton();
+
+    void onDirtyChanged();
+    void onEditModeChanged();
+    void onRecordingChanged();
 
 signals:
     void recordingChanged();
@@ -61,6 +77,10 @@ signals:
     void editModeChanged();
     void nameValidChanged();
     void enoughRecordingsChanged();
+    void dirtyChanged();
+    void renamedChanged();
+    void savingChanged();
+    void savedChanged();
 
     void playButtonEnabledChanged(bool);
     void deleteButtonEnabledChanged(bool);
@@ -72,14 +92,24 @@ private:
     constexpr static int MIN_RECORDINGS_COUNT = 3;
 
     Ui::PatternWindow *ui;
-    IODeviceRecorder *recorder;
-    QAudioOutput *audioOutput;
+    std::unique_ptr<IODeviceRecorder> recorder;
+    std::unique_ptr<Preprocessor> preprocessor;
+
     PatternModel *model;
 
-    QListWidgetItem* add_recording(const QByteArray& recording);
+    QListWidgetItem* add_recording(const PatternRecording& recording);
 
-    QVector<QByteArray> _recordings;
-    QByteArray* _selectedRecording = nullptr;
+    QVector<PatternRecording> _recordings;
+    PatternRecording* _selectedRecording = nullptr;
+
+    void checkEnoughRecordings();
+    void checkNameValid(const QString& s);
+
+    void save();
+
+    [[nodiscard]] QString getCreateButtonText() const;
+    [[nodiscard]] QString getTitle() const;
+    [[nodiscard]] QString getLabelText() const;
 
     bool isRecording = false;
     bool isRecordingSelected = false;
@@ -87,6 +117,10 @@ private:
     bool isEditMode = false;
     bool isNameValid = false;
     bool isEnoughRecordings = false;
+    bool isDirty = false;
+    bool isRenamed = false;
+    bool isSaving = false;
+    bool isSaved = false;
 };
 
 #endif // PATTERNWINDOW_H

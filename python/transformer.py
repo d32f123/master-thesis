@@ -44,7 +44,7 @@ def audio_length(filename):
     return librosa.get_duration(y, sr)
 
 
-def preprocess(in_file, out_file, trigger_level=7, silence_percent=2):
+def preprocess(in_file, out_file, trigger_level=7):
     ok, _, err = sox_runner([
         '-r', str(sr),
         '-e', 'floating-point',
@@ -54,18 +54,16 @@ def preprocess(in_file, out_file, trigger_level=7, silence_percent=2):
         '-e', 'floating-point',
         '-b', '32',
         out_file,
-        'vad', '-s', '0.25', '-t', str(trigger_level),
-        'silence', '1', '4000', '{}%'.format(silence_percent),
-        'reverse', 'silence', '1', '4000', '{}%'.format(silence_percent), 'reverse'
+        'vad', '-s', '0.25', '-p', '0.05', '-t', str(trigger_level),
+        'silence', '1', '4000', '1%',
+        'reverse', 'silence', '1', '4000', '2%', 'reverse'
     ])
     if ok != 0:
         raise ValueError(err)
 
     audio_len = audio_length(out_file)
     if audio_len < 0.2:
-        if silence_percent < 2 and trigger_level < 2:
+        if trigger_level < 2:
             raise ValueError(out_file + ' shrunk to 0')
-        if silence_percent > 1:
-            preprocess(in_file, out_file, trigger_level, silence_percent - 1)
         else:
-            preprocess(in_file, out_file, trigger_level - 1, silence_percent)
+            preprocess(in_file, out_file, trigger_level - 1)

@@ -2,8 +2,8 @@
 
 #include <algorithm>
 
-IODeviceRecorder::IODeviceRecorder(const QAudioDeviceInfo &deviceInfo)
-        : buf(new QBuffer()) {
+IODeviceRecorder::IODeviceRecorder(const QAudioDeviceInfo &deviceInfo, QObject* parent)
+        : QObject(parent), buf(new QBuffer()) {
     audioInput = new QAudioInput(deviceInfo, defaultFormat(), this);
 }
 
@@ -19,7 +19,7 @@ void IODeviceRecorder::stop() {
     buf->seek(0);
 }
 
-void IODeviceRecorder::set(const QByteArray &arr, QIODevice::OpenMode mode) {
+void IODeviceRecorder::set(const QByteArray &arr, QIODevice::OpenMode mode) const {
     if (buf->isOpen()) {
         buf->close();
     }
@@ -29,7 +29,7 @@ void IODeviceRecorder::set(const QByteArray &arr, QIODevice::OpenMode mode) {
     buf->seek(0);
 }
 
-void IODeviceRecorder::resetRead() {
+void IODeviceRecorder::resetRead() const {
     buf->seek(0);
 }
 

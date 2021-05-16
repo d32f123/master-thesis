@@ -23,6 +23,8 @@ public:
     const static char* FALSE_PATTERN_NAME;
     const static char* RECORDING_FILE_EXTENSION;
     const static char* RECORDING_FILE_GLOB;
+    const static char* MODEL_FILE_EXTENSION;
+    const static char* MODEL_FILE_GLOB;
     const static char* ACTIVE_FILE_NAME;
 
     const static char* TWITRECOG_FILE_NAME;

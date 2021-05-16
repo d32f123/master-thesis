@@ -13,20 +13,21 @@ class PatternService {
 public:
     PatternService() = delete;
 
-    static void addPattern(const PatternModel &pattern);
+    static void savePattern(PatternModel& pattern);
     static void deletePattern(const PatternModel &pattern);
-    static void savePatterns(const QVector<PatternModel> &patterns);
+    static void renamePattern(PatternModel &pattern, const QString& new_name);
+    static void savePatterns(QVector<PatternModel> &patterns);
+    static void updatePattern(PatternModel &pattern);
+    static std::optional<PatternModel> getPattern(const QString& name);
     static QVector<PatternModel> getPatterns();
 
     static PatternModel getFalsePattern();
-    static void saveFalsePattern(const PatternModel& pattern);
 protected:
-    static void savePattern(const PatternModel& pattern);
-    static std::optional<PatternModel> getPattern(const QString& pattern_dir);
     static QString patternPathFromName(const QString& pattern);
     static QString patternNameFromPath(const QString& pattern_path);
+    static QString modelPathFromIdx(int idx);
     static QString recordingPathFromIdx(int idx);
-    static int recordingIdxFromPath(const QString& recording_path);
+    static int idxFromPath(const QString& recording_path);
 };
 
 #endif // PATTERNSERVICE_H

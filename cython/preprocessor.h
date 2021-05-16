@@ -10,7 +10,7 @@ class Preprocessor : public QThread {
 public:
     explicit Preprocessor(QObject *parent = nullptr) : QThread(parent) {};
 
-    std::optional<QString> patternName;
+    std::optional<QString> patternName {};
 
     void run() override;
 };
