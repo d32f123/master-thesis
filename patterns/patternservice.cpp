@@ -27,19 +27,25 @@ void PatternService::savePattern(const PatternModel &pattern) {
     }
     dir.cd(pattern_dir_path);
 
+    for (auto&& entry : dir.entryList({config::RECORDING_FILE_GLOB}, QDir::Files)) {
+        if (!dir.remove(entry)) {
+            qWarning("Failed to remove file %s", qUtf8Printable(entry));
+        }
+    }
     {
         QFile active_file{dir.filePath(config::ACTIVE_FILE_NAME)};
         if (!active_file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-            qWarning("Couldn't open active_file for writing");
+            qWarning("Couldn't open active_file for writing: %s", qUtf8Printable(dir.filePath(config::ACTIVE_FILE_NAME)));
             return;
         }
         active_file.write(pattern.active() ? "true" : "false");
     }
 
     for (int i = 0; i < pattern.recordings().size(); ++i) {
-        QFile recording_file{dir.filePath(PatternService::recordingPathFromIdx(i))};
+        auto file_name = PatternService::recordingPathFromIdx(i);
+        QFile recording_file{dir.filePath(file_name)};
         if (!recording_file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-            qWarning("Couldn't open recording_file for writing");
+            qWarning("Couldn't open recording_file for writing: %s", qUtf8Printable(file_name));
             return;
         }
 
@@ -56,22 +62,19 @@ std::optional<PatternModel> PatternService::getPattern(const QString &pattern_di
 
     PatternModel model;
     model.setName(PatternService::patternNameFromPath(pattern_dir));
-    qInfo("Loading pattern %s from %s", qUtf8Printable(model.name()), qUtf8Printable(pattern_dir));
 
     dir.cd(pattern_dir);
     {
         QFile active_file{dir.filePath(config::ACTIVE_FILE_NAME)};
         if (!active_file.open(QIODevice::ReadOnly)) {
-            qWarning("Couldn't open active_file for reading");
+            qWarning("Couldn't open active_file for reading for pattern %s", qUtf8Printable(model.name()));
             return {};
         }
         QString is_active = active_file.readAll();
         model.setActive(is_active == "true");
     }
 
-    auto recordings_paths = dir.entryList(
-            {QString{"*"} + config::RECORDING_FILE_EXTENSION}, QDir::Files, QDir::Name
-    );
+    auto recordings_paths = dir.entryList({config::RECORDING_FILE_GLOB}, QDir::Files, QDir::Name);
     QVector<QByteArray> recordings;
     recordings.resize(recordings_paths.size());
     for (auto &&recording_path : recordings_paths) {
@@ -97,10 +100,9 @@ QVector<PatternModel> PatternService::getPatterns() {
 
     QVector<PatternModel> ret{};
     for (auto &&pattern_dir_name : patterns_dirs) {
-        qInfo("Loading pattern %s", qUtf8Printable(pattern_dir_name));
         auto pattern = getPattern(pattern_dir_name);
         if (!pattern) {
-            qWarning("Error loading patterns");
+            qWarning("Error loading patterns while loading pattern %s", qUtf8Printable(pattern_dir_name));
             return ret;
         }
         ret.push_back(pattern.value());

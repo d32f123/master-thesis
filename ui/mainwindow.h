@@ -20,26 +20,26 @@ class MainWindow : public QMainWindow {
 Q_OBJECT;
 
 public:
-    MainWindow(QWidget *parent = nullptr);
+    explicit MainWindow(QWidget *parent = nullptr);
 
     ~MainWindow() override;
 
-    bool itemSelected() const;
+    [[nodiscard]] bool itemSelected() const;
     void setItemSelected(bool v);
 
-    bool activeItemSelected() const;
+    [[nodiscard]] bool activeItemSelected() const;
     void setActiveItemSelected(bool v);
 
-    bool inactiveItemSelected() const;
+    [[nodiscard]] bool inactiveItemSelected() const;
     void setInactiveItemSelected(bool v);
 
-    bool preprocessing() const;
+    [[nodiscard]] bool preprocessing() const;
     void setPreprocessing(bool v);
 
-    bool activeItemsAvailable() const;
+    [[nodiscard]] bool activeItemsAvailable() const;
     void setActiveItemsAvailable(bool v);
 
-    bool recognizing() const;
+    [[nodiscard]] bool recognizing() const;
     void setRecognizing(bool v);
 
 signals:
@@ -82,7 +82,7 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    PatternWindow *patternWindow;
+    PatternWindow *patternWindow {nullptr};
     QVector<QMetaObject::Connection> patternWindowConnections;
 
     Recognizer *recognizer;
@@ -95,7 +95,7 @@ private:
     void movePattern(QListWidget *from, QListWidget *to, bool toActive);
     void openPatternWindow(PatternModel *model, const std::function<void(PatternModel*)>& acceptedCallback);
 
-    QString getSelectedItem() const;
+    [[nodiscard]] QString getSelectedItem() const;
 
     bool _inactiveItemSelected = false;
     bool _activeItemSelected = false;

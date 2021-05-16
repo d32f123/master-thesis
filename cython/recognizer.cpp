@@ -39,14 +39,13 @@ void Recognizer::recognizerDone() {
 }
 
 void recognizer::run() {
-    qInfo("Recognizer starting");
     dataSocket.subscribe("");
     dataSocket.set(zmqpp::socket_option::receive_timeout, 1000);
     dataSocket.bind(config::TWITRECOG_DATA_ENDPOINT);
 
     commandSocket.bind(config::TWITRECOG_COMMAND_ENDPOINT);
 
-    qInfo("Launching python");
+    qInfo("Launching recognizer");
     QProcess python_process{};
     python_process.start("python3", {
         config::getTwitRecogFilePath(),
@@ -55,20 +54,19 @@ void recognizer::run() {
 
     if (python_process.state() == QProcess::ProcessState::NotRunning ||
         python_process.error() == QProcess::ProcessError::FailedToStart) {
-        qWarning("Failed to start python: %s", qUtf8Printable(python_process.errorString()));
+        qWarning("Failed to start recognizer: %s", qUtf8Printable(python_process.errorString()));
         QByteArray std_out = python_process.readAll();
-        qWarning("Std out: %s", std_out.data());
+        if (!std_out.isEmpty()) qWarning("Recognizer output: %s", std_out.data());
         return;
     }
 
-    qInfo("Launched python");
-    qInfo("Recognizer loop");
+    qInfo("Listening for recognizer events");
     Worker::run();
     qInfo("Recognizer exiting");
     commandSocket.send("done");
     python_process.waitForFinished();
     QByteArray std_out = python_process.readAll();
-    qWarning("Std out: %s", std_out.data());
+    if (!std_out.isEmpty()) qWarning("Recognizer output: %s", std_out.data());
     dataSocket.close();
     commandSocket.close();
 
