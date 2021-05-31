@@ -77,7 +77,7 @@ jobs:
         cd libzmq
         mkdir build
         cd build
-        cmake -GNinja ../src
+        cmake -GNinja -DBUILD_TESTS=OFF ../src
         ninja
         ninja install
         cd ../../
@@ -86,7 +86,7 @@ jobs:
         cd zmqpp
         mkdir build
         cd build
-        cmake -GNinja ../src
+        cmake -GNinja -DZEROMQ_LIB_DIR=$PWD/../../libzmq/build/bin -DZEROMQ_INCLUDE_DIR=$PWD/../../libzmq/build/include ../src
         ninja
         ninja install
         cd ../../
