@@ -36,7 +36,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        token: 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
+        token: ${{ github.token }}
     - name: Set up ninja
       uses: seanmiddleditch/gha-setup-ninja@v3
     - name: Setup cmake
@@ -65,13 +65,13 @@ jobs:
       with:
         repository: zeromq/libzmq
         path: libzmq/src
-        token: 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
+        token: ${{ github.token }}
     - name: Download zmqpp
       uses: actions/checkout@v2
       with:
         repository: zeromq/zmqpp
         path: zmqpp/src
-        token: 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
+        token: ${{ github.token }}
     - name: Build libzmq
       run: |
         cd libzmq
