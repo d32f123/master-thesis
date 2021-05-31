@@ -34,6 +34,8 @@ void IODeviceRecorder::resetRead() const {
 }
 
 QAudioFormat IODeviceRecorder::defaultFormat() {
+    QAudioDeviceInfo info {QAudioDeviceInfo::defaultOutputDevice()};
+
     QAudioFormat audioFormat;
     audioFormat.setSampleRate(sampleRate);
     audioFormat.setChannelCount(1);
@@ -41,6 +43,14 @@ QAudioFormat IODeviceRecorder::defaultFormat() {
     audioFormat.setCodec("audio/pcm");
 //    audioFormat.setByteOrder(QAudioFormat::LittleEndian);
     audioFormat.setSampleType(sampleType);
+
+    if (!info.isFormatSupported(audioFormat)) {
+        qWarning("Default format unsupported!");
+        auto supportedSampleSizes = info.supportedSampleSizes();
+        for (auto&& size : supportedSampleSizes) {
+            qWarning("Supported sample size: %d", size);
+        }
+    }
 
     return audioFormat;
 }

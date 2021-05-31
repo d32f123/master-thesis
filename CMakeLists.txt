@@ -50,6 +50,8 @@ target_link_directories(TwitFilC PRIVATE ${Python3_LIBRARY_DIRS})
 target_link_libraries(TwitFilC PRIVATE Qt5::Widgets Qt5::Charts Qt5::Concurrent Qt5::Multimedia ${ZMQ} ${ZMQPP} ${Python3_LIBRARIES})
 target_include_directories(TwitFilC PRIVATE ${PROJECT_DIRS})
 
+file(COPY ${ZMQ} ${ZMQPP} DESTINATION .)
+
 set_target_properties(TwitFilC PROPERTIES
         MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
         MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}

@@ -345,6 +345,7 @@ void PatternWindow::save() {
         PatternService::renamePattern(*model, new_name);
         setRenamed(false);
     }
+    model->setName(new_name);
     if (!dirty()) {
         setSaved(true);
         return;

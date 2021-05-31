@@ -43,6 +43,10 @@ void IODevicePlotterWidget::initialize(const QAudioDeviceInfo &deviceInfo) {
     if (audioInput != nullptr) {
         delete audioInput;
     }
+    auto defaultFormat = IODeviceRecorder::defaultFormat();
+    if (!deviceInfo.isFormatSupported(defaultFormat)) {
+        qWarning("ok");
+    }
     audioInput = new QAudioInput(deviceInfo, IODeviceRecorder::defaultFormat(), this);
 }
 

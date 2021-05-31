@@ -65,8 +65,8 @@ void recognizer::run() {
     qInfo("Recognizer exiting");
     commandSocket.send("done");
     python_process.waitForFinished();
-    QByteArray std_out = python_process.readAll();
-    if (!std_out.isEmpty()) qWarning("Recognizer output: %s", std_out.data());
+//    QByteArray std_out = python_process.readAll();
+//    if (!std_out.isEmpty()) qWarning("Recognizer output: %s", std_out.data());
     dataSocket.close();
     commandSocket.close();
 

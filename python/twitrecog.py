@@ -123,6 +123,7 @@ def get_models(root: str) -> Tuple[List[List[Tuple[np.ndarray, int]]], List[Tupl
     false_ret = []
     path = os.path.join(root, models_rel_path)
     for pattern_name in os.listdir(path):
+        print('found pattern', pattern_name)
         pattern_path = os.path.join(path, pattern_name)
         with open(os.path.join(pattern_path, active_path), 'r') as active_file:
             if active_file.read() == 'false':
