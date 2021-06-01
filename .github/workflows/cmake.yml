@@ -37,6 +37,9 @@ jobs:
     - uses: actions/checkout@v2
       with:
         token: ${{ github.token }}
+    - name: Set up windows tools
+      if: startsWith(matrix.config.os, 'windows')
+      uses: ilammy/msvc-dev-cmd@v1
     - name: Set up ninja
       uses: seanmiddleditch/gha-setup-ninja@v3
     - name: Setup cmake
@@ -79,32 +82,29 @@ jobs:
         git clone https://github.com/zeromq/zmqpp.git src
         cd ../
     - name: Build libzmq
-      uses: ashutoshvarma/action-cmake-build@master
-      with:
-        source-dir: ${{ github.workspace }}/libzmq/src
-        build-dir: ${{ github.workspace }}/libzmq/build
-        install-build: true
-        cc: ${{ matrix.config.cc }}
-        cxx: ${{ matrix.config.cxx }}
-        configure-options: -GNinja -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libzmq/install"
+      run: |
+        cd libzmq
+        cd build
+        cmake -GNinja -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libzmq/install" ../src
+        ninja
+        ninja install
+        cd ../../
     - name: Build zmqpp
-      uses: ashutoshvarma/action-cmake-build@master
-      with:
-        source-dir: ${{ github.workspace }}/zmqpp/src
-        build-dir: ${{ github.workspace }}/zmqpp/build
-        install-build: true
-        cc: ${{ matrix.config.cc }}
-        cxx: ${{ matrix.config.cxx }}
-        configure-options: -GNinja -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/zmqpp/install" -DCMAKE_PREFIX_PATH="${{ github.workspace }}/libzmq/install"
+      run: |
+        cd zmqpp
+        cd build
+        cmake -GNinja -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/zmqpp/install" -DCMAKE_PREFIX_PATH="${{ github.workspace }}/libzmq/install" ../src
+        ninja
+        ninja install
+        cd ../../
+
     - name: Build TwitFil
-      uses: ashutoshvarma/action-cmake-build@master
-      with:
-        source-dir: ${{ github.workspace }}
-        build-dir: ${{ github.workspace }}/build
-        install-build: false
-        cc: ${{ matrix.config.cc }}
-        cxx: ${{ matrix.config.cxx }}
-        configure-options: -GNinja -DCMAKE_PREFIX_PATH="${{ github.workspace }}/libzmq/install;${{ github.workspace }}/zmqpp/install"
+      run: |
+        mkdir build
+        cd build
+        cmake -GNinja -DCMAKE_PREFIX_PATH="${{ github.workspace }}/libzmq/install;${{ github.workspace }}/zmqpp/install" ../
+        ninja
+        cd ../
 
     - name: Pack
       working-directory: build
