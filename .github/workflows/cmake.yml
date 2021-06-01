@@ -16,17 +16,17 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          #        - {
-          #  name: "Windows Latest MSVC", artifact: "Windows-MSVC.7z",
-          #  os: windows-latest,
-          #  cc: "cl", cxx: "cl",
-          #  environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
-          #}
         - {
-            name: "Ubuntu Latest GCC", artifact: "Linux.7z",
-            os: ubuntu-latest,
-            cc: "gcc", cxx: "g++"
+            name: "Windows Latest MSVC", artifact: "Windows-MSVC.7z",
+            os: windows-latest,
+            cc: "cl", cxx: "cl",
+            environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
           }
+#        - {
+#            name: "Ubuntu Latest GCC", artifact: "Linux.7z",
+#            os: ubuntu-latest,
+#            cc: "gcc", cxx: "g++"
+#          }
 #        - {
 #            name: "macOS Latest Clang", artifact: "macOS.7z",
 #            os: macos-latest,
@@ -64,21 +64,21 @@ jobs:
       run: |
         mkdir libzmq
         cd libzmq
-        mkdir src build
+        mkdir src build install
         git clone https://github.com/zeromq/libzmq.git src
         cd ../
     - name: Download zmqpp
       run: |
         mkdir zmqpp
         cd zmqpp
-        mkdir src build
+        mkdir src build install
         git clone https://github.com/zeromq/zmqpp.git src
         cd ../
     - name: Build libzmq
       run: |
         cd libzmq
         cd build
-        cmake -GNinja -DBUILD_TESTS=OFF ../src
+        cmake -GNinja -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=$PWD/../install ../src
         ninja
         ninja install
         cd ../../
@@ -86,16 +86,16 @@ jobs:
       run: |
         cd zmqpp
         cd build
-        cmake -GNinja -DZEROMQ_LIB_DIR=$PWD/../../libzmq/build/bin -DZEROMQ_INCLUDE_DIR=$PWD/../../libzmq/src/include ../src
+        cmake -GNinja -DCMAKE_INSTALL_PREFIX=$PWD/../install -DCMAKE_PREFIX_PATH=$PWD/../../libzmq/install ../src
         ninja
         ninja install
         cd ../../
 
     - name: Build TwitFil
       run: |
-        mkdir build install
+        mkdir build
         cd build
-        cmake -GNinja -DCMAKE_INSTALL_PREFIX=../install ../
+        cmake -GNinja -DCMAKE_PREFIX_PATH="$PWD/../../libzmq/install;$PWD/../../zmqpp/install" ../
         ninja
         cd ../
 
