@@ -64,14 +64,18 @@ jobs:
       run: |
         mkdir libzmq
         cd libzmq
-        mkdir src build install
+        mkdir src
+        mkdir build
+        mkdir install
         git clone https://github.com/zeromq/libzmq.git src
         cd ../
     - name: Download zmqpp
       run: |
         mkdir zmqpp
         cd zmqpp
-        mkdir src build install
+        mkdir src
+        mkdir build
+        mkdir install
         git clone https://github.com/zeromq/zmqpp.git src
         cd ../
     - name: Build libzmq
