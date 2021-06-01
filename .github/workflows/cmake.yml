@@ -16,17 +16,17 @@ jobs:
       fail-fast: false
       matrix:
         config:
+          #        - {
+          #  name: "Windows Latest MSVC", artifact: "Windows-MSVC.7z",
+          #  os: windows-latest,
+          #  cc: "cl", cxx: "cl",
+          #  environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
+          #}
         - {
-            name: "Windows Latest MSVC", artifact: "Windows-MSVC.7z",
-            os: windows-latest,
-            cc: "cl", cxx: "cl",
-            environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
+            name: "Ubuntu Latest GCC", artifact: "Linux.7z",
+            os: ubuntu-latest,
+            cc: "gcc", cxx: "g++"
           }
-#        - {
-#            name: "Ubuntu Latest GCC", artifact: "Linux.7z",
-#            os: ubuntu-latest,
-#            cc: "gcc", cxx: "g++"
-#          }
 #        - {
 #            name: "macOS Latest Clang", artifact: "macOS.7z",
 #            os: macos-latest,
@@ -61,21 +61,22 @@ jobs:
     - name: Print Qt
       run: echo $Qt5_DIR
     - name: Download libzmq
-      uses: actions/checkout@v2
-      with:
-        repository: zeromq/libzmq
-        path: libzmq/src
-        token: ${{ github.token }}
+      run: |
+        mkdir libzmq
+        cd libzmq
+        mkdir src build
+        git clone https://github.com/zeromq/libzmq.git src
+        cd ../
     - name: Download zmqpp
-      uses: actions/checkout@v2
-      with:
-        repository: zeromq/zmqpp
-        path: zmqpp/src
-        token: ${{ github.token }}
+      run: |
+        mkdir zmqpp
+        cd zmqpp
+        mkdir src build
+        git clone https://github.com/zeromq/zmqpp.git src
+        cd ../
     - name: Build libzmq
       run: |
         cd libzmq
-        mkdir build
         cd build
         cmake -GNinja -DBUILD_TESTS=OFF ../src
         ninja
@@ -84,9 +85,8 @@ jobs:
     - name: Build zmqpp
       run: |
         cd zmqpp
-        mkdir build
         cd build
-        cmake -GNinja -DZEROMQ_LIB_DIR=$PWD/../../libzmq/build/bin -DZEROMQ_INCLUDE_DIR=$PWD/../../libzmq/build/include ../src
+        cmake -GNinja -DZEROMQ_LIB_DIR=$PWD/../../libzmq/build/bin -DZEROMQ_INCLUDE_DIR=$PWD/../../libzmq/src/include ../src
         ninja
         ninja install
         cd ../../
