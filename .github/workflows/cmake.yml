@@ -85,13 +85,7 @@ jobs:
       run: |
         cd libzmq
         cd build
-        cmake |
-          -GNinja -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libzmq/install"
-          -DCMAKE_C_COMPILER="${{matrix.config.cc}}"
-          -DCMAKE_CXX_COMPILER="${{matrix.config.cxx}}"
-          -DCMAKE_DISABLE_PRECOMPILE_HEADERS=OFF
-          -DENABLE_PRECOMPILED=OFF
-          ../src
+        cmake -GNinja -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libzmq/install" -DCMAKE_C_COMPILER="${{matrix.config.cc}}" -DCMAKE_CXX_COMPILER="${{matrix.config.cxx}}" -DCMAKE_DISABLE_PRECOMPILE_HEADERS=OFF -DENABLE_PRECOMPILED=OFF ../src
         ninja -w dupbuild=warn
         ninja install
         cd ../../
