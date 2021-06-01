@@ -95,7 +95,7 @@ jobs:
       run: |
         mkdir build
         cd build
-        cmake -GNinja -DCMAKE_PREFIX_PATH="$PWD/../../libzmq/install;$PWD/../../zmqpp/install" ../
+        cmake -GNinja -DCMAKE_PREFIX_PATH="$PWD/../libzmq/install;$PWD/../zmqpp/install" ../
         ninja
         cd ../
 

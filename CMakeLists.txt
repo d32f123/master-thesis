@@ -13,9 +13,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt5 COMPONENTS Widgets Core Gui OpenGL Concurrent Multimedia Charts REQUIRED)
 
-find_library(ZMQ NAMES zmq)
-find_library(ZMQPP NAMES zmqpp)
-find_path(ZMQPP_INCLUDES NAMES zmqpp/zmqpp.hpp)
+find_library(ZMQ NAMES zmq REQUIRED)
+find_library(ZMQPP NAMES zmqpp REQUIRED)
+find_path(ZMQ_INCLUDES NAMES zmq.h REQUIRED)
+find_path(ZMQPP_INCLUDES NAMES zmqpp/zmqpp.hpp REQUIRED)
 find_package(Python3 COMPONENTS Interpreter Development)
 
 set(PROJECT_DIRS ui io patterns cython misc)
@@ -44,7 +45,7 @@ set(PROJECT_SOURCES
 
 add_executable(TwitFilC ${PROJECT_SOURCES})
 
-include_directories(${ZMQPP_INCLUDES} ${Python3_INCLUDE_DIRS})
+include_directories(${ZMQ_INCLUDES} ${ZMQPP_INCLUDES} ${Python3_INCLUDE_DIRS})
 target_link_options(TwitFilC PRIVATE ${Python3_LINK_OPTIONS})
 target_link_directories(TwitFilC PRIVATE ${Python3_LIBRARY_DIRS})
 target_link_libraries(TwitFilC PRIVATE Qt5::Widgets Qt5::Charts Qt5::Concurrent Qt5::Multimedia ${ZMQ} ${ZMQPP} ${Python3_LIBRARIES})
