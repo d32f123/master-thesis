@@ -82,7 +82,7 @@ jobs:
       run: |
         cd libzmq
         cd build
-        cmake -GNinja -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=../install ../src
+        cmake -GNinja -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libzmq/install" ../src
         ninja
         ninja install
         cd ../../
@@ -90,7 +90,7 @@ jobs:
       run: |
         cd zmqpp
         cd build
-        cmake -GNinja -DCMAKE_INSTALL_PREFIX=../install -DCMAKE_PREFIX_PATH=../../libzmq/install ../src
+        cmake -GNinja -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/zmqpp/install" -DCMAKE_PREFIX_PATH="${{ github.workspace }}/libzmq/install" ../src
         ninja
         ninja install
         cd ../../
@@ -99,7 +99,7 @@ jobs:
       run: |
         mkdir build
         cd build
-        cmake -GNinja -DCMAKE_PREFIX_PATH="../libzmq/install;../zmqpp/install" ../
+        cmake -GNinja -DCMAKE_PREFIX_PATH="${{ github.workspace }}/libzmq/install;${{ github.workspace }}/zmqpp/install" ../
         ninja
         cd ../
 
