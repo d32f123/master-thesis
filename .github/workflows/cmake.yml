@@ -16,17 +16,17 @@ jobs:
       fail-fast: false
       matrix:
         config:
-#        - {
-#            name: "Windows Latest MSVC", artifact: "Windows-MSVC.7z",
-#            os: windows-latest,
-#            cc: "cl", cxx: "cl",
-#            environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
-#          }
         - {
-            name: "Ubuntu Latest GCC", artifact: "Linux.7z",
-            os: ubuntu-latest,
-            cc: "gcc", cxx: "g++"
+            name: "Windows Latest MSVC", artifact: "Windows-MSVC.7z",
+            os: windows-latest,
+            cc: "cl", cxx: "cl",
+            environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
           }
+#        - {
+#            name: "Ubuntu Latest GCC", artifact: "Linux.7z",
+#            os: ubuntu-latest,
+#            cc: "gcc", cxx: "g++"
+#          }
 #        - {
 #            name: "macOS Latest Clang", artifact: "macOS.7z",
 #            os: macos-latest,
@@ -85,7 +85,7 @@ jobs:
       run: |
         cd libzmq
         cd build
-        cmake -GNinja -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libzmq/install" -DCC=${{matrix.config.cc}} -DCXX=${{matrix.config.cxx}} ../src
+        cmake -GNinja -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libzmq/install" -DCC="${{matrix.config.cc}}" -DCXX="${{matrix.config.cxx}}" ../src
         ninja
         ninja install
         cd ../../
@@ -93,7 +93,7 @@ jobs:
       run: |
         cd zmqpp
         cd build
-        cmake -GNinja -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/zmqpp/install" -DCMAKE_PREFIX_PATH="${{ github.workspace }}/libzmq/install" -DCC=${{matrix.config.cc}} -DCXX=${{matrix.config.cxx}} ../src
+        cmake -GNinja -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/zmqpp/install" -DCMAKE_PREFIX_PATH="${{ github.workspace }}/libzmq/install" -DCC="${{matrix.config.cc}}" -DCXX="${{matrix.config.cxx}}" ../src
         ninja
         ninja install
         cd ../../
@@ -102,7 +102,7 @@ jobs:
       run: |
         mkdir build
         cd build
-        cmake -GNinja -DCMAKE_PREFIX_PATH="${{ github.workspace }}/libzmq/install;${{ github.workspace }}/zmqpp/install" -DCC=${{matrix.config.cc}} -DCXX=${{matrix.config.cxx}} ../
+        cmake -GNinja -DCMAKE_PREFIX_PATH="${{ github.workspace }}/libzmq/install;${{ github.workspace }}/zmqpp/install" -DCC="${{matrix.config.cc}}" -DCXX="${{matrix.config.cxx}}" ../
         ninja
         cd ../
 
