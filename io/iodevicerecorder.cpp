@@ -33,8 +33,7 @@ void IODeviceRecorder::resetRead() const {
     buf->seek(0);
 }
 
-QAudioFormat IODeviceRecorder::defaultFormat() {
-    QAudioDeviceInfo info {QAudioDeviceInfo::defaultOutputDevice()};
+QAudioFormat IODeviceRecorder::defaultFormat(const QAudioDeviceInfo& info) {
 
     QAudioFormat audioFormat;
     audioFormat.setSampleRate(sampleRate);
@@ -53,4 +52,18 @@ QAudioFormat IODeviceRecorder::defaultFormat() {
     }
 
     return audioFormat;
+}
+
+QAudioFormat IODeviceRecorder::preferredFormat(const QAudioDeviceInfo& info) {
+    auto defaultFormat = IODeviceRecorder::defaultFormat(info);
+    auto preferredFormat = info.nearestFormat(defaultFormat);
+
+    if (defaultFormat.sampleType() != preferredFormat.sampleType()) {
+        qWarning("Sample type is changed from %d to %d", defaultFormat.sampleType(), preferredFormat.sampleType());
+    }
+    if (defaultFormat.sampleRate() != preferredFormat.sampleRate()) {
+        qWarning("Sample rate changed from %d to %d", defaultFormat.sampleRate(), preferredFormat.sampleRate());
+    }
+
+    return preferredFormat;
 }

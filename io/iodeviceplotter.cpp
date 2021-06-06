@@ -22,16 +22,15 @@ qint64 IODevicePlotter::writeData(const char *data, qint64 maxSize) {
         for (int i = 0; i < IODevicePlotter::sampleCount; ++i) {
             buf.append(QPointF(i, 0));
         }
+        series->replace(buf);
     }
 
     int start = 0;
     // 2 for transfer from char to float (1->4)
     int availableSamples = int(maxSize >> (2 + resolution_power));
     if (availableSamples < sampleCount) {
+        std::move(buf.begin() + availableSamples, buf.end(), buf.begin());
         start = sampleCount - availableSamples;
-        for (int s = 0; s < start; ++s) {
-            buf[s].setY(buf[s + availableSamples].y());
-        }
     }
 
     const auto* float_data = reinterpret_cast<const float*>(data);
@@ -40,5 +39,6 @@ qint64 IODevicePlotter::writeData(const char *data, qint64 maxSize) {
     }
 
     series->replace(buf);
-    return ((sampleCount - start) << (2 + resolution_power));
+//    qWarning("Max size: %d", maxSize);
+    return maxSize;
 }

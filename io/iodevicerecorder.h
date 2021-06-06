@@ -22,7 +22,8 @@ public:
 
     void resetRead() const;
 
-    static QAudioFormat defaultFormat();
+    static QAudioFormat defaultFormat(const QAudioDeviceInfo& info = QAudioDeviceInfo::defaultOutputDevice());
+    static QAudioFormat preferredFormat(const QAudioDeviceInfo& info = QAudioDeviceInfo::defaultOutputDevice());
 
     static const int sampleRate = 22050;
     static const QAudioFormat::SampleType sampleType = QAudioFormat::SampleType::Float;

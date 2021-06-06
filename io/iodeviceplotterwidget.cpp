@@ -35,7 +35,9 @@ IODevicePlotterWidget::IODevicePlotterWidget(QWidget *parent)
     mainLayout->addWidget(chartView);
 
     plotter = new IODevicePlotter(series, this);
-    plotter->open(QIODevice::WriteOnly);
+    if (!plotter->open(QIODevice::WriteOnly)) {
+        qWarning("Couldnt open IODevicePlotter");
+    }
 }
 
 void IODevicePlotterWidget::initialize(const QAudioDeviceInfo &deviceInfo) {
@@ -43,11 +45,10 @@ void IODevicePlotterWidget::initialize(const QAudioDeviceInfo &deviceInfo) {
     if (audioInput != nullptr) {
         delete audioInput;
     }
-    auto defaultFormat = IODeviceRecorder::defaultFormat();
-    if (!deviceInfo.isFormatSupported(defaultFormat)) {
-        qWarning("ok");
-    }
-    audioInput = new QAudioInput(deviceInfo, IODeviceRecorder::defaultFormat(), this);
+    auto format = IODeviceRecorder::preferredFormat(deviceInfo);
+    audioInput = new QAudioInput(deviceInfo, format, this);
+    auto actualFormat = audioInput->format();
+    qWarning("Default format: %d %d %d", actualFormat.sampleRate(), actualFormat.sampleType(), actualFormat.sampleSize());
 }
 
 void IODevicePlotterWidget::setAudio(const QByteArray &arr) {

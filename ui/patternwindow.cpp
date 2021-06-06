@@ -297,9 +297,9 @@ void PatternWindow::onRecordingChanged() {
 }
 
 void PatternWindow::onRecordingsListWidgetItemSelectionChanged() {
-    bool isSelected = !this->ui->recordingsListWidget->selectedItems().empty();
+    bool isSelected = !this->ui->recordingsListWidget->selectedItems().isEmpty();
     if (isSelected) {
-        auto& selectedItem = this->ui->recordingsListWidget->selectedItems().first();
+        auto selectedItem = this->ui->recordingsListWidget->selectedItems().first();
         auto idx = selectedItem->data(Qt::UserRole).toInt();
         setSelectedRecording(&_recordings[idx]);
     } else {
