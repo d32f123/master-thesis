@@ -85,7 +85,7 @@ jobs:
       run: |
         cd libzmq
         cd build
-        cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED=ON -DBUILD_STATIC=ON -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libzmq/install" -DCMAKE_DISABLE_PRECOMPILE_HEADERS=OFF -DENABLE_PRECOMPILED=OFF ../src
+        cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED=ON -DBUILD_STATIC=ON -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libzmq/install" -DCMAKE_DISABLE_PRECOMPILE_HEADERS=OFF -DENABLE_PRECOMPILED=OFF -DCMAKE_C_COMPILER="${{matrix.config.cc}}" -DCMAKE_CXX_COMPILER="${{matrix.config.cxx}}" ../src
         ninja
         ninja install
         cd ../../
@@ -96,7 +96,7 @@ jobs:
         cd zmqpp
         mkdir build
         cd build
-        cmake -GNinja -DZMQPP_LOC="${{ github.workspace }}/zmqpp" -DCMAKE_PREFIX_PATH="${{ github.workspace }}/libzmq/install" ../src
+        cmake -GNinja -DZMQPP_LOC="${{ github.workspace }}/zmqpp" -DCMAKE_PREFIX_PATH="${{ github.workspace }}/libzmq/install" -DCMAKE_C_COMPILER="${{matrix.config.cc}}" -DCMAKE_CXX_COMPILER="${{matrix.config.cxx}}" ../src
         ninja
         cd ../../../../
 
@@ -104,7 +104,7 @@ jobs:
       run: |
         mkdir build
         cd build
-        cmake -GNinja -DCMAKE_PREFIX_PATH="${{ github.workspace }}/libzmq/install;${{ github.workspace }}/zmqpp/install" ../
+        cmake -GNinja -DCMAKE_PREFIX_PATH="${{ github.workspace }}/libzmq/install;${{ github.workspace }}/zmqpp/install" -DCMAKE_C_COMPILER="${{matrix.config.cc}}" -DCMAKE_CXX_COMPILER="${{matrix.config.cxx}}" ../
         ninja
         cd ../
 
