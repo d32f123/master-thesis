@@ -68,7 +68,7 @@ jobs:
           ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" < /dev/null 2> /dev/null
           brew install zmqpp
       - name: Download libzmq
-        if: !startsWith(matrix.config.os, 'darwin')
+        if: startsWith(matrix.config.os, 'darwin') != true
         run: |
           mkdir libzmq
           cd libzmq
@@ -78,7 +78,7 @@ jobs:
           git clone https://github.com/zeromq/libzmq.git src
           cd ../
       - name: Download zmqpp
-        if: !startsWith(matrix.config.os, 'darwin')
+        if: startsWith(matrix.config.os, 'darwin') != true
         run: |
           mkdir zmqpp
           cd zmqpp
@@ -88,7 +88,7 @@ jobs:
           git clone https://github.com/zeromq/zmqpp.git src
           cd ../
       - name: Build libzmq
-        if: !startsWith(matrix.config.os, 'darwin')
+        if: startsWith(matrix.config.os, 'darwin') != true
         run: |
           cd libzmq
           cd build
@@ -97,7 +97,7 @@ jobs:
           ninja install
           cd ../../
       - name: Build zmqpp
-        if: !startsWith(matrix.config.os, 'darwin')
+        if: startsWith(matrix.config.os, 'darwin') != true
         run: |
           cd .github
           cd cmake
