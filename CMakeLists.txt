@@ -14,6 +14,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Qt5 COMPONENTS Widgets Core Gui OpenGL Concurrent Multimedia Charts REQUIRED)
 
 set( ZMQ_NAME  "zmq" CACHE STRING "The ZMQ library to" )
+set( ZMQPP_NAME "zmqpp" CACHE STRING "The ZMQPP Wrapper to link to" )
 
 find_path(ZMQ_INCLUDES NAMES zmq.h REQUIRED)
 find_path(ZMQPP_INCLUDES NAMES zmqpp/zmqpp.hpp REQUIRED)
@@ -26,8 +27,10 @@ message(STATUS "Detected ZMQ Version - ${ZMQ_VERSION}")
 list(APPEND ZMQ_NAME "libzmq-mt-${ZMQ_VERSION}")
 message(STATUS "ZMQ libs: ${ZMQ_NAME}")
 
+list(APPEND ZMQPP_NAME "libzmqpp")
+
 find_library(ZMQ NAMES ${ZMQ_NAME} REQUIRED)
-find_library(ZMQPP NAMES zmqpp REQUIRED)
+find_library(ZMQPP NAMES ${ZMQPP_NAME} REQUIRED)
 
 find_package(Python3 COMPONENTS Interpreter Development)
 
