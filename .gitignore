@@ -7,3 +7,8 @@ Makefile
 *.user
 cmake-build-debug/
 .idea/
+
+/zmqpp/
+/libzmq/
+build/
+/cmake-build-*/
