@@ -16,21 +16,38 @@ find_package(Qt5 COMPONENTS Widgets Core Gui OpenGL Concurrent Multimedia Charts
 set( ZMQ_NAME  "zmq" CACHE STRING "The ZMQ library to" )
 set( ZMQPP_NAME "zmqpp" CACHE STRING "The ZMQPP Wrapper to link to" )
 
+if (MSVC)
+    set(CMAKE_FIND_LIBRARY_PREFIXES "lib" "")
+endif()
+
 find_path(ZMQ_INCLUDES NAMES zmq.h REQUIRED)
 find_path(ZMQPP_INCLUDES NAMES zmqpp/zmqpp.hpp REQUIRED)
-file(READ "${ZMQ_INCLUDES}/zmq.h" _ZMQ_H_CONTENTS)
-string(REGEX REPLACE ".*#define ZMQ_VERSION_MAJOR ([0-9]+).*" "\\1" ZMQ_VERSION_MAJOR "${_ZMQ_H_CONTENTS}")
-string(REGEX REPLACE ".*#define ZMQ_VERSION_MINOR ([0-9]+).*" "\\1" ZMQ_VERSION_MINOR "${_ZMQ_H_CONTENTS}")
-string(REGEX REPLACE ".*#define ZMQ_VERSION_PATCH ([0-9]+).*" "\\1" ZMQ_VERSION_PATCH "${_ZMQ_H_CONTENTS}")
-set(ZMQ_VERSION "${ZMQ_VERSION_MAJOR}_${ZMQ_VERSION_MINOR}_${ZMQ_VERSION_PATCH}")
-message(STATUS "Detected ZMQ Version - ${ZMQ_VERSION}")
-list(APPEND ZMQ_NAME "libzmq-mt-${ZMQ_VERSION}")
-message(STATUS "ZMQ libs: ${ZMQ_NAME}")
 
-list(APPEND ZMQPP_NAME "libzmqpp")
+if (MSVC)
+    file(READ "${ZMQ_INCLUDES}/zmq.h" _ZMQ_H_CONTENTS)
+    string(REGEX REPLACE ".*#define ZMQ_VERSION_MAJOR ([0-9]+).*" "\\1" ZMQ_VERSION_MAJOR "${_ZMQ_H_CONTENTS}")
+    string(REGEX REPLACE ".*#define ZMQ_VERSION_MINOR ([0-9]+).*" "\\1" ZMQ_VERSION_MINOR "${_ZMQ_H_CONTENTS}")
+    string(REGEX REPLACE ".*#define ZMQ_VERSION_PATCH ([0-9]+).*" "\\1" ZMQ_VERSION_PATCH "${_ZMQ_H_CONTENTS}")
+    set(ZMQ_VERSION "${ZMQ_VERSION_MAJOR}_${ZMQ_VERSION_MINOR}_${ZMQ_VERSION_PATCH}")
+    message(STATUS "Detected ZMQ Version - ${ZMQ_VERSION}")
+    list(APPEND ZMQ_NAME "zmq-mt-${ZMQ_VERSION}")
+endif()
+message(STATUS "ZMQ libs: ${ZMQ_NAME}")
 
 find_library(ZMQ NAMES ${ZMQ_NAME} REQUIRED)
 find_library(ZMQPP NAMES ${ZMQPP_NAME} REQUIRED)
+
+if (MSVC)
+    set(SHARED_FILE_EXT "dll")
+else()
+    set(SHARED_FILE_EXT "so")
+endif()
+get_filename_component(ZMQ_ACTUAL ${ZMQ} NAME_WLE)
+get_filename_component(ZMQPP_ACTUAL ${ZMQPP} NAME_WLE)
+find_file(ZMQ_SHARED "${ZMQ_ACTUAL}.${SHARED_FILE_EXT}" PATH_SUFFIXES bin lib REQUIRED)
+find_file(ZMQPP_SHARED "${ZMQPP_ACTUAL}.${SHARED_FILE_EXT}" PATH_SUFFIXES bin lib REQUIRED)
+
+message(STATUS "ZMQ lib: ${ZMQ_SHARED}")
 
 find_package(Python3 COMPONENTS Interpreter Development)
 
@@ -69,6 +86,10 @@ target_link_options(TwitFilC PRIVATE ${Python3_LINK_OPTIONS})
 target_link_directories(TwitFilC PRIVATE ${Python3_LIBRARY_DIRS})
 target_link_libraries(TwitFilC PRIVATE Qt5::Widgets Qt5::Charts Qt5::Concurrent Qt5::Multimedia ${ZMQ} ${ZMQPP} ${Python3_LIBRARIES})
 target_include_directories(TwitFilC PRIVATE ${PROJECT_DIRS})
+
+install(TARGETS TwitFilC DESTINATION .)
+install(FILES ${ZMQ_SHARED} ${ZMQPP_SHARED} DESTINATION .)
+install(DIRECTORY python/ DESTINATION python/)
 
 set_target_properties(TwitFilC PROPERTIES
         MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com

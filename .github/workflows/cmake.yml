@@ -19,19 +19,18 @@ jobs:
         - {
             name: "Windows Latest MSVC", artifact: "Windows-MSVC.7z",
             os: windows-latest,
-            cc: "cl", cxx: "cl",
-            environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
+            cc: "cl", cxx: "cl"
           }
-#        - {
-#            name: "Ubuntu Latest GCC", artifact: "Linux.7z",
-#            os: ubuntu-latest,
-#            cc: "gcc", cxx: "g++"
-#          }
-#        - {
-#            name: "macOS Latest Clang", artifact: "macOS.7z",
-#            os: macos-latest,
-#            cc: "clang", cxx: "clang++"
-#          }
+        - {
+            name: "Ubuntu Latest GCC", artifact: "Linux.7z",
+            os: ubuntu-latest,
+            cc: "gcc", cxx: "g++"
+          }
+        - {
+            name: "macOS Latest Clang", artifact: "macOS.7z",
+            os: macos-latest,
+            cc: "clang", cxx: "clang++"
+          }
 
     steps:
     - uses: actions/checkout@v2
@@ -110,7 +109,7 @@ jobs:
 
     - name: Pack
       working-directory: build
-      run: cmake -E tar cfv ../${{ matrix.config.artifact }} --format=7zip .
+      run: cmake -E tar cfv ../${{ matrix.config.artifact }} --format=7zip install/
 
     - name: Upload
       uses: actions/upload-artifact@v2
@@ -156,17 +155,13 @@ jobs:
             os: ubuntu-latest
           }
         - {
-            name: "Windows Latest MinGW", artifact: "Windows-MinGW.7z",
-            os: ubuntu-latest
-          }
-        - {
             name: "Ubuntu Latest GCC", artifact: "Linux.7z",
             os: ubuntu-latest
           }
-        - {
-            name: "macOS Latest Clang", artifact: "macOS.7z",
-            os: ubuntu-latest
-          }
+#        - {
+#            name: "macOS Latest Clang", artifact: "macOS.7z",
+#            os: ubuntu-latest
+#          }
     needs: release
 
     steps:
