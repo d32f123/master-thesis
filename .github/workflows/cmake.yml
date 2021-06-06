@@ -174,10 +174,10 @@ jobs:
             name: "Ubuntu Latest GCC", artifact: "Linux.zip",
             os: ubuntu-latest
           }
-            - {
-                name: "macOS Latest Clang", artifact: "macOS.zip",
-                os: ubuntu-latest
-              }
+          - {
+            name: "macOS Latest Clang", artifact: "macOS.zip",
+            os: ubuntu-latest
+          }
     needs: release
 
     steps:
