@@ -52,7 +52,12 @@ jobs:
       - name: Install python deps
         run: |
           python -m pip install --upgrade pip
-          python -m pip install aqtinstall
+      - name: Cache Qt
+        id: cache-qt
+        uses: actions/cache@v1
+        with:
+          path: ${{ github.workspace }}/qt
+          key: ${{ runner.os }}-QtCache
       - name: Install Qt
         uses: jurplel/install-qt-action@v2
         with:
@@ -60,6 +65,7 @@ jobs:
           target: desktop
           modules: qtcharts
           dir: ${{ github.workspace }}/qt
+          cached: ${{ steps.cache-qt.outputs.cache-hit }}
       - name: Print Qt
         run: echo $Qt5_DIR
       - name: Fetch libzmq and zmqpp
@@ -119,7 +125,7 @@ jobs:
 
       - name: Pack
         working-directory: build
-        run: cmake -E tar cfv ../${{ matrix.config.artifact }} --format=7zip "${{ github.workspace }}/install"
+        run: cmake -E tar cfv ../${{ matrix.config.artifact }} --format=zip "${{ github.workspace }}/install"
 
       - name: Upload
         uses: actions/upload-artifact@v2
