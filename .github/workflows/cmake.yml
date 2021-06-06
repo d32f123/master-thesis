@@ -62,7 +62,13 @@ jobs:
         dir: ${{ github.workspace }}/qt
     - name: Print Qt
       run: echo $Qt5_DIR
+    - name: Fetch libzmq and zmqpp
+      if: startsWith(matrix.config.os, 'darwin')
+      run: |
+        ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" < /dev/null 2> /dev/null
+        brew install zmqpp
     - name: Download libzmq
+      if: !startsWith(matrix.config.os, 'darwin')
       run: |
         mkdir libzmq
         cd libzmq
@@ -72,6 +78,7 @@ jobs:
         git clone https://github.com/zeromq/libzmq.git src
         cd ../
     - name: Download zmqpp
+      if: !startsWith(matrix.config.os, 'darwin')
       run: |
         mkdir zmqpp
         cd zmqpp
@@ -81,6 +88,7 @@ jobs:
         git clone https://github.com/zeromq/zmqpp.git src
         cd ../
     - name: Build libzmq
+      if: !startsWith(matrix.config.os, 'darwin')
       run: |
         cd libzmq
         cd build
@@ -89,6 +97,7 @@ jobs:
         ninja install
         cd ../../
     - name: Build zmqpp
+      if: !startsWith(matrix.config.os, 'darwin')
       run: |
         cd .github
         cd cmake
@@ -105,6 +114,7 @@ jobs:
         cd build
         cmake -GNinja -DCMAKE_PREFIX_PATH="${{ github.workspace }}/libzmq/install;${{ github.workspace }}/zmqpp/install" -DCMAKE_C_COMPILER="${{matrix.config.cc}}" -DCMAKE_CXX_COMPILER="${{matrix.config.cxx}}" ../
         ninja
+        ninja install
         cd ../
 
     - name: Pack
