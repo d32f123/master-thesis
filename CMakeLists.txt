@@ -42,12 +42,14 @@ if (MSVC)
 else()
     set(SHARED_FILE_EXT "so")
 endif()
-get_filename_component(ZMQ_ACTUAL ${ZMQ} NAME_WLE)
-get_filename_component(ZMQPP_ACTUAL ${ZMQPP} NAME_WLE)
-find_file(ZMQ_SHARED "${ZMQ_ACTUAL}.${SHARED_FILE_EXT}" PATH_SUFFIXES bin lib REQUIRED)
-find_file(ZMQPP_SHARED "${ZMQPP_ACTUAL}.${SHARED_FILE_EXT}" PATH_SUFFIXES bin lib REQUIRED)
+if (NOT APPLE)
+    get_filename_component(ZMQ_ACTUAL ${ZMQ} NAME_WLE)
+    get_filename_component(ZMQPP_ACTUAL ${ZMQPP} NAME_WLE)
+    find_file(ZMQ_SHARED "${ZMQ_ACTUAL}.${SHARED_FILE_EXT}" PATH_SUFFIXES bin lib REQUIRED)
+    find_file(ZMQPP_SHARED "${ZMQPP_ACTUAL}.${SHARED_FILE_EXT}" PATH_SUFFIXES bin lib REQUIRED)
 
-message(STATUS "ZMQ lib: ${ZMQ_SHARED}")
+    message(STATUS "ZMQ lib: ${ZMQ_SHARED}")
+endif()
 
 find_package(Python3 COMPONENTS Interpreter Development)
 
@@ -88,7 +90,9 @@ target_link_libraries(TwitFilC PRIVATE Qt5::Widgets Qt5::Charts Qt5::Concurrent 
 target_include_directories(TwitFilC PRIVATE ${PROJECT_DIRS})
 
 install(TARGETS TwitFilC DESTINATION .)
+if(NOT APPLE)
 install(FILES ${ZMQ_SHARED} ${ZMQPP_SHARED} DESTINATION .)
+endif()
 install(DIRECTORY python/ DESTINATION python/)
 
 set_target_properties(TwitFilC PROPERTIES

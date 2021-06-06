@@ -119,7 +119,7 @@ jobs:
 
       - name: Pack
         working-directory: build
-        run: cmake -E tar cfv ../${{ matrix.config.artifact }} --format=7zip install/
+        run: cmake -E tar cfv ../${{ matrix.config.artifact }} --format=7zip "${{ github.workspace }}/install"
 
       - name: Upload
         uses: actions/upload-artifact@v2
