@@ -17,17 +17,17 @@ jobs:
       matrix:
         config:
           - {
-            name: "Windows Latest MSVC", artifact: "Windows-MSVC.7z",
+            name: "Windows Latest MSVC", artifact: "Windows-MSVC.zip",
             os: windows-latest,
             cc: "cl", cxx: "cl"
           }
           - {
-            name: "Ubuntu Latest GCC", artifact: "Linux.7z",
+            name: "Ubuntu Latest GCC", artifact: "Linux.zip",
             os: ubuntu-latest,
             cc: "gcc", cxx: "g++"
           }
           - {
-            name: "macOS Latest Clang", artifact: "macOS.7z",
+            name: "macOS Latest Clang", artifact: "macOS.zip",
             os: macos-latest,
             cc: "clang", cxx: "clang++"
           }
@@ -167,17 +167,17 @@ jobs:
       matrix:
         config:
           - {
-            name: "Windows Latest MSVC", artifact: "Windows-MSVC.7z",
+            name: "Windows Latest MSVC", artifact: "Windows-MSVC.zip",
             os: ubuntu-latest
           }
           - {
-            name: "Ubuntu Latest GCC", artifact: "Linux.7z",
+            name: "Ubuntu Latest GCC", artifact: "Linux.zip",
             os: ubuntu-latest
           }
-    #        - {
-    #            name: "macOS Latest Clang", artifact: "macOS.7z",
-    #            os: ubuntu-latest
-    #          }
+            - {
+                name: "macOS Latest Clang", artifact: "macOS.zip",
+                os: ubuntu-latest
+              }
     needs: release
 
     steps:
